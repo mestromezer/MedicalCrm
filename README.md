@@ -1,6 +1,6 @@
 ### Medical CRM project
 ## Состит из двух проектов: `
-- #MedicalCrmLib`
+- #`MedicalCrmLib`
   Класслиба с сущностями, интерфейсами и имплементацией репозиториев.
-- #MrdicalCrmWebClient`
+- #`MedicalCrmWebClient`
   Blazor-server-side приложение с имплеменатцией UI
