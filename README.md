@@ -6,3 +6,4 @@
   
 - # `MedicalCrmWebClient`
   Blazor-server-side приложение с имплеменатцией UI
+  https://github.com/mestromezer/MedicalCrm/tree/main/MrdicalCrmWebClient
