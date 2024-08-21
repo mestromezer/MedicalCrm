@@ -60,7 +60,7 @@
 
                 <DataGridColumn TItem="Client"
                                 Field="@nameof(Client.BirthDate)"
-                                Caption="Дата производства">
+                                Caption="Дата рождения">
                     <DisplayTemplate>
                         @context.BirthDate.ToShortDateString()
                     </DisplayTemplate>
@@ -159,14 +159,14 @@
     private async Task AddNewClient()
     {
         await clientsRepository.Add(newClient);
-        clients = await clientsRepository.GetAsList(); // Refresh the list
+        clients = await clientsRepository.GetAsList();
         await addClientModal.Hide();
     }
 
     private async Task DeleteClient(int id)
     {
         await clientsRepository.Delete(id);
-        clients = await clientsRepository.GetAsList(); // Refresh the list
+        clients = await clientsRepository.GetAsList();
     }
 
     private async Task ConfirmDeleteSelectedClients()
@@ -176,7 +176,7 @@
             await clientsRepository.Delete(client.Id);
         }
         _selectedClients.Clear();
-        clients = await clientsRepository.GetAsList(); // Refresh the list
+        clients = await clientsRepository.GetAsList();
     }
 
     private async Task CancelClicked()

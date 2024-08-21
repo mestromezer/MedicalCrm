@@ -44,15 +44,15 @@ public class LampJournalRepository(DataMock dataMock) : IRepository<LampJournal,
 
     public Task<List<LampJournal>> GetAsList()
     {
-        return Task.FromResult(LampJournalRcords);
+        return Task.FromResult(new List<LampJournal>(LampJournalRcords));
     }
 
     public Task<List<LampJournal>> GetAsList(Func<LampJournal, bool> predicate)
     {
-        return Task.FromResult(LampJournalRcords.Where(predicate).ToList());
+        return Task.FromResult(new List<LampJournal>(LampJournalRcords.Where(predicate).ToList()));
     }
 
-    public Task Update(LampJournal newValue, int key)
+    public Task Update(LampJournal newValue)
     {
         throw new NotImplementedException();
     }

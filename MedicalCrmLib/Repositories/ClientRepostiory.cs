@@ -36,15 +36,15 @@ public class ClientRepostiory(DataMock dataMock) : IRepository<Client, int>
 
     public Task<List<Client>> GetAsList()
     {
-        return Task.FromResult(Clients);
+        return Task.FromResult(new List<Client>(Clients));
     }
 
     public Task<List<Client>> GetAsList(Func<Client, bool> predicate)
     {
-        return Task.FromResult(Clients.Where(predicate).ToList());
+        return Task.FromResult(new List<Client>(Clients.Where(predicate).ToList()));
     }
 
-    public Task Update(Client newValue, int key)
+    public Task Update(Client newValue)
     {
         throw new NotImplementedException();
     }

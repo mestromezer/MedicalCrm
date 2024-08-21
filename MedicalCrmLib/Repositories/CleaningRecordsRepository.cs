@@ -35,25 +35,25 @@ public class CleaningRecordsRepository(DataMock dataMock) : IRepository<Cleaning
 
     public Task<List<CleaningRecord>> GetAsList()
     {
-        return Task.FromResult(CleaningRecords);
+        return Task.FromResult(new List<CleaningRecord>(CleaningRecords));
     }
 
     public Task<List<CleaningRecord>> GetAsList(Func<CleaningRecord, bool> predicate)
     {
-        return Task.FromResult(CleaningRecords.Where(predicate).ToList());
+        return Task.FromResult(new List<CleaningRecord>(CleaningRecords.Where(predicate).ToList()));
     }
 
-    public Task Update(CleaningRecord newValue, int key)
+    public Task Update(CleaningRecord newValue)
     {
-        if (key < 0)
-            throw new ArgumentNullException(nameof(key));
+        if (newValue.Id < 0)
+            throw new ArgumentNullException(nameof(newValue.Id));
 
-        var target = CleaningRecords.FirstOrDefault(el => el.Id == key);
+        var target = CleaningRecords.FirstOrDefault(el => el.Id == newValue.Id);
         if (target == null)
-            throw new InvalidOperationException($"Не найдена запись CleaningRecord с переданным ключем: {key}");
+            throw new InvalidOperationException($"Не найдена запись CleaningRecord с переданным ключем: {newValue.Id}");
 
-        newValue.Id = key;
-        target = newValue;
+        CleaningRecords.Remove(target);
+        CleaningRecords.Add(newValue);
 
         return Task.CompletedTask;
     }

@@ -35,25 +35,25 @@ public class PpeRepository(DataMock dataMock) : IRepository<Ppe, string>
 
     public Task<List<Ppe>> GetAsList()
     {
-        return Task.FromResult(PpeRecords);
+        return Task.FromResult(new List<Ppe>(PpeRecords));
     }
 
     public Task<List<Ppe>> GetAsList(Func<Ppe, bool> predicate)
     {
-        return Task.FromResult(PpeRecords.Where(predicate).ToList());
+        return Task.FromResult(new List<Ppe>(PpeRecords.Where(predicate).ToList()));
     }
 
-    public Task Update(Ppe newValue, string key)
+    public Task Update(Ppe newValue)
     {
-        if(string.IsNullOrWhiteSpace(key))
-            throw new ArgumentNullException(nameof(key));
+        if(string.IsNullOrWhiteSpace(newValue.Name))
+            throw new ArgumentNullException(nameof(newValue.Name));
 
-        var target = PpeRecords.FirstOrDefault(el => el.Name!.CompareTo(key) == 0);
+        var target = PpeRecords.FirstOrDefault(el => el.Name!.CompareTo(newValue.Name) == 0);
         if (target == null)
-            throw new InvalidOperationException($"Не найдена запись ppe с переданным ключем: {key}");
+            throw new InvalidOperationException($"Не найдена запись ppe с переданным ключем: {newValue.Name}");
 
-        newValue.Name = key;
-        target = newValue;
+        PpeRecords.Remove(target);
+        PpeRecords.Add(newValue);
 
         return Task.CompletedTask;
     }

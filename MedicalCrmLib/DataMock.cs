@@ -25,7 +25,6 @@ public class DataMock
         InitAnalysisResults();
         InitOrders();
         InitServices();
-        InitClients();
     }
 
     private void InitEmployees()

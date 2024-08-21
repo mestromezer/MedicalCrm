@@ -46,7 +46,7 @@
                                 Field="@nameof(LampJournal.RecordDateTime)"
                                 Caption="Дата записи">
                     <DisplayTemplate>
-                        @context.ProductionTime.ToShortDateString()
+                        @context.RecordDateTime.ToShortDateString()
                     </DisplayTemplate>
                 </DataGridColumn>
 
@@ -70,7 +70,7 @@
                                 Field="@nameof(LampJournal.BestBeforeDate)"
                                 Caption="Срок годности">
                     <DisplayTemplate>
-                        @context.ProductionTime.ToShortDateString()
+                        @context.BestBeforeDate.ToShortDateString()
                     </DisplayTemplate>
                 </DataGridColumn>
 
@@ -151,7 +151,7 @@
     private async Task AddNewLampJournal()
     {
         await lampJournalRepository.Add(newLampJournal);
-        lampJournals = await lampJournalRepository.GetAsList(); 
+        lampJournals = await lampJournalRepository.GetAsList();
         await addLampJournalModal.Hide();
     }
 

@@ -35,15 +35,15 @@ public class AnalysisResultRpository(DataMock dataMock) : IRepository<AnalysisRe
 
     public Task<List<AnalysisResult>> GetAsList()
     {
-        return Task.FromResult(AnalysisResults);
+        return Task.FromResult(new List<AnalysisResult>(AnalysisResults));
     }
 
     public Task<List<AnalysisResult>> GetAsList(Func<AnalysisResult, bool> predicate)
     {
-        return Task.FromResult(AnalysisResults.Where(predicate).ToList());
+        return Task.FromResult(new List<AnalysisResult>(AnalysisResults.Where(predicate).ToList()));
     }
 
-    public Task Update(AnalysisResult newValue, int key)
+    public Task Update(AnalysisResult newValue)
     {
         throw new NotImplementedException();
     }

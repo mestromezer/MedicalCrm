@@ -167,7 +167,7 @@
 
     private async Task SaveEditedPpe()
     {
-        await ppeRepository.Update(editingPpe, editingPpe.Name);
+        await ppeRepository.Update(editingPpe);
         ppes = await ppeRepository.GetAsList();
         await editPpeModal.Hide();
     }

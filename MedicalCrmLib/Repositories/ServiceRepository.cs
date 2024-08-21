@@ -38,15 +38,15 @@ public class ServiceRepository(DataMock dataMock) : IRepository<Service, int>
 
     public Task<List<Service>> GetAsList()
     {
-        return Task.FromResult(Services);
+        return Task.FromResult(new List<Service>(Services));
     }
 
     public Task<List<Service>> GetAsList(Func<Service, bool> predicate)
     {
-        return Task.FromResult(Services.Where(predicate).ToList());
+        return Task.FromResult(new List<Service>(Services.Where(predicate).ToList()));
     }
 
-    public Task Update(Service newValue, int key)
+    public Task Update(Service newValue)
     {
         throw new NotImplementedException();
     }

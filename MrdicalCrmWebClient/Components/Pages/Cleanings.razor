@@ -115,11 +115,14 @@
     private async Task AddNewRecord()
     {
         await cleaningRecordsRepository.Add(newRecord);
+        await addRecordModal.Hide();
+        cleaningRecords = await cleaningRecordsRepository.GetAsList();
     }
 
     private async Task DeleteRecord(int id)
     {
         await cleaningRecordsRepository.Delete(id);
+        cleaningRecords = await cleaningRecordsRepository.GetAsList();
     }
 
     private async Task ConfirmDeleteSelectedRecords()
@@ -129,6 +132,7 @@
             await cleaningRecordsRepository.Delete(record.Id);
         }
         _selectedRecords.Clear();
+        cleaningRecords = await cleaningRecordsRepository.GetAsList();
     }
 
     private async Task CancelClicked()
