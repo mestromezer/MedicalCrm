@@ -1,0 +1,178 @@
+﻿@page "/lamp-journals"
+
+@rendermode InteractiveServer
+
+@inject IRepository<LampJournal, int> lampJournalRepository;
+
+@using Blazorise.DataGrid
+@using Blazorise
+@using MedicalCrmLib.Interfaces
+
+<Card>
+    <CardHeader>
+        <Row Class="justify-content-between">
+            <Column ColumnSize="ColumnSize.IsAuto">
+                <h4>Журнал ламп</h4>
+            </Column>
+            <Column ColumnSize="ColumnSize.IsAuto">
+                <Button Color="Color.Primary" Clicked="ShowAddLampJournalModal">
+                    Добавить запись
+                </Button>
+                <Button Color="Color.Danger" Disabled="@(_selectedLampJournals.Count == 0)"
+                        Clicked="ConfirmDeleteSelectedLampJournals">
+                    Удалить выбранное
+                </Button>
+            </Column>
+        </Row>
+    </CardHeader>
+    <CardBody>
+        <DataGrid TItem="LampJournal"
+                  Data="@lampJournals"
+                  SelectionMode="DataGridSelectionMode.Multiple"
+                  @bind-SelectedRows="_selectedLampJournals"
+                  ShowPager="true"
+                  PageSize="@GridPageSize"
+                  Responsive Striped>
+            <DataGridColumns>
+                <DataGridMultiSelectColumn TItem="LampJournal" Width="30px" />
+
+                <DataGridColumn TItem="LampJournal"
+                                Field="@nameof(LampJournal.Id)"
+                                Caption="ID"
+                                Sortable="false"
+                                Filterable="false" />
+
+                <DataGridColumn TItem="LampJournal"
+                                Field="@nameof(LampJournal.RecordDateTime)"
+                                Caption="Дата записи">
+                    <DisplayTemplate>
+                        @context.ProductionTime.ToShortDateString()
+                    </DisplayTemplate>
+                </DataGridColumn>
+
+                <DataGridColumn TItem="LampJournal"
+                                Field="@nameof(LampJournal.EmployeeId)"
+                                Caption="ID сотрудника" />
+
+                <DataGridColumn TItem="LampJournal"
+                                Field="@nameof(LampJournal.Cabinet)"
+                                Caption="Номер кабинета" />
+
+                <DataGridColumn TItem="LampJournal"
+                                Field="@nameof(LampJournal.ProductionTime)"
+                                Caption="Дата производства">
+                    <DisplayTemplate>
+                        @context.ProductionTime.ToShortDateString()
+                    </DisplayTemplate>
+                </DataGridColumn>
+
+                <DataGridColumn TItem="LampJournal"
+                                Field="@nameof(LampJournal.BestBeforeDate)"
+                                Caption="Срок годности">
+                    <DisplayTemplate>
+                        @context.ProductionTime.ToShortDateString()
+                    </DisplayTemplate>
+                </DataGridColumn>
+
+                <DataGridCommandColumn TItem="LampJournal" Width="150px">
+                    <DisplayTemplate>
+                        <Button Color="Color.Danger" Clicked="@(() => DeleteLampJournal(context.Id))">
+                            Удалить
+                        </Button>
+                    </DisplayTemplate>
+                </DataGridCommandColumn>
+            </DataGridColumns>
+
+            <LoadingTemplate>
+                <p>Загрузка...</p>
+            </LoadingTemplate>
+
+            <EmptyTemplate>
+                <p>Нет записей.</p>
+            </EmptyTemplate>
+        </DataGrid>
+    </CardBody>
+</Card>
+
+<Modal @ref="addLampJournalModal" Size="ModalSize.Small" ShowCloseIcon="true" Style="background-color: white;">
+    <ModalHeader>
+        <h5>Добавить запись</h5>
+    </ModalHeader>
+    <ModalBody>
+        <div class="mb-3">
+            <label for="recordDateTime">Дата записи:</label>
+            <InputDate id="recordDateTime" @bind-Value="newLampJournal.RecordDateTime" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label for="employeeId">ID сотрудника:</label>
+            <input type="number" id="employeeId" @bind="newLampJournal.EmployeeId" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label for="cabinet">Номер кабинета:</label>
+            <input type="number" id="cabinet" @bind="newLampJournal.Cabinet" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label for="productionTime">Дата производства:</label>
+            <InputDate id="productionTime" @bind-Value="newLampJournal.ProductionTime" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label for="bestBeforeDate">Срок годности:</label>
+            <InputDate id="bestBeforeDate" @bind-Value="newLampJournal.BestBeforeDate" class="form-control" />
+        </div>
+    </ModalBody>
+    <ModalFooter>
+        <Button Color="Color.Primary" Clicked="AddNewLampJournal">
+            Добавить
+        </Button>
+        <Button Color="Color.Secondary" Clicked="CancelClicked">
+            Отмена
+        </Button>
+    </ModalFooter>
+</Modal>
+
+@code {
+    private List<LampJournal> lampJournals = new();
+    private LampJournal newLampJournal = new();
+    private List<LampJournal> _selectedLampJournals = new();
+    private Modal? addLampJournalModal = null!;
+    private int GridPageSize = 5;
+
+    protected override async Task OnInitializedAsync()
+    {
+        lampJournals = await lampJournalRepository.GetAsList();
+    }
+
+    private async Task ShowAddLampJournalModal()
+    {
+        newLampJournal = new LampJournal();
+        await addLampJournalModal!.Show();
+    }
+
+    private async Task AddNewLampJournal()
+    {
+        await lampJournalRepository.Add(newLampJournal);
+        lampJournals = await lampJournalRepository.GetAsList(); 
+        await addLampJournalModal.Hide();
+    }
+
+    private async Task DeleteLampJournal(int id)
+    {
+        await lampJournalRepository.Delete(id);
+        lampJournals = await lampJournalRepository.GetAsList(); 
+    }
+
+    private async Task ConfirmDeleteSelectedLampJournals()
+    {
+        foreach (var lampJournal in _selectedLampJournals.ToList())
+        {
+            await lampJournalRepository.Delete(lampJournal.Id);
+        }
+        _selectedLampJournals.Clear();
+        lampJournals = await lampJournalRepository.GetAsList(); 
+    }
+
+    private async Task CancelClicked()
+    {
+        await addLampJournalModal.Hide();
+    }
+}

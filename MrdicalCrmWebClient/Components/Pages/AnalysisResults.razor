@@ -1,0 +1,158 @@
+﻿@page "/analysis-results"
+
+@rendermode InteractiveServer
+
+@inject IRepository<AnalysisResult, int> analysisResultsRepository;
+
+@using Blazorise.DataGrid
+@using Blazorise
+@using MedicalCrmLib.Interfaces
+
+<Card>
+    <CardHeader>
+        <Row Class="justify-content-between">
+            <Column ColumnSize="ColumnSize.IsAuto">
+                <h4>Результаты анализа</h4>
+            </Column>
+            <Column ColumnSize="ColumnSize.IsAuto">
+                <Button Color="Color.Primary" Clicked="ShowAddAnalysisResultModal">
+                    Добавить запись
+                </Button>
+                <Button Color="Color.Danger" Disabled="@(_selectedAnalysisResults.Count == 0)"
+                        Clicked="ConfirmDeleteSelectedAnalysisResults">
+                    Удалить выбранное
+                </Button>
+            </Column>
+        </Row>
+    </CardHeader>
+    <CardBody>
+        <DataGrid TItem="AnalysisResult"
+                  Data="@analysisResults"
+                  SelectionMode="DataGridSelectionMode.Multiple"
+                  @bind-SelectedRows="_selectedAnalysisResults"
+                  ShowPager="true"
+                  PageSize="@GridPageSize"
+                  Responsive Striped>
+            <DataGridColumns>
+                <DataGridMultiSelectColumn TItem="AnalysisResult" Width="30px" />
+
+                <DataGridColumn TItem="AnalysisResult"
+                                Field="@nameof(AnalysisResult.Id)"
+                                Caption="ID"
+                                Sortable="false"
+                                Filterable="false" />
+
+                <DataGridColumn TItem="AnalysisResult"
+                                Field="@nameof(AnalysisResult.AnalysisId)"
+                                Caption="ID анализа" />
+
+                <DataGridColumn TItem="AnalysisResult"
+                                Field="@nameof(AnalysisResult.EmployeeId)"
+                                Caption="ID сотрудника" />
+
+                <DataGridColumn TItem="AnalysisResult"
+                                Field="@nameof(AnalysisResult.Report)"
+                                Caption="Отчет" />
+
+                <DataGridColumn TItem="AnalysisResult"
+                                Field="@nameof(AnalysisResult.Comments)"
+                                Caption="Комментарии" />
+
+                <DataGridCommandColumn TItem="AnalysisResult" Width="150px">
+                    <DisplayTemplate>
+                        <Button Color="Color.Danger" Clicked="@(() => DeleteAnalysisResult(context.Id))">
+                            Удалить
+                        </Button>
+                    </DisplayTemplate>
+                </DataGridCommandColumn>
+            </DataGridColumns>
+
+            <LoadingTemplate>
+                <p>Загрузка...</p>
+            </LoadingTemplate>
+
+            <EmptyTemplate>
+                <p>Нет записей.</p>
+            </EmptyTemplate>
+        </DataGrid>
+    </CardBody>
+</Card>
+
+<Modal @ref="addAnalysisResultModal" Size="ModalSize.Small" ShowCloseIcon="true" Style="background-color: white;">
+    <ModalHeader>
+        <h5>Добавить запись</h5>
+    </ModalHeader>
+    <ModalBody>
+        <div class="mb-3">
+            <label for="analysisId">ID анализа:</label>
+            <input type="number" id="analysisId" @bind="newAnalysisResult.AnalysisId" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label for="employeeId">ID сотрудника:</label>
+            <input type="number" id="employeeId" @bind="newAnalysisResult.EmployeeId" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label for="report">Отчет:</label>
+            <input type="text" id="report" @bind="newAnalysisResult.Report" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label for="comments">Комментарии:</label>
+            <input type="text" id="comments" @bind="newAnalysisResult.Comments" class="form-control" />
+        </div>
+    </ModalBody>
+    <ModalFooter>
+        <Button Color="Color.Primary" Clicked="AddNewAnalysisResult">
+            Добавить
+        </Button>
+        <Button Color="Color.Secondary" Clicked="CancelClicked">
+            Отмена
+        </Button>
+    </ModalFooter>
+</Modal>
+
+@code {
+    private List<AnalysisResult> analysisResults = new();
+    private AnalysisResult newAnalysisResult = new();
+    private List<AnalysisResult> _selectedAnalysisResults = new();
+    private Modal? addAnalysisResultModal = null!;
+    private int GridPageSize = 5;
+
+    protected override async Task OnInitializedAsync()
+    {
+        analysisResults = await analysisResultsRepository.GetAsList();
+    }
+
+    private async Task ShowAddAnalysisResultModal()
+    {
+        newAnalysisResult = new AnalysisResult();
+        await addAnalysisResultModal!.Show();
+    }
+
+    private async Task AddNewAnalysisResult()
+    {
+        await analysisResultsRepository.Add(newAnalysisResult);
+        analysisResults = await analysisResultsRepository.GetAsList();
+        await addAnalysisResultModal.Hide();
+    }
+
+    private async Task DeleteAnalysisResult(int id)
+    {
+        await analysisResultsRepository.Delete(id);
+        analysisResults = await analysisResultsRepository.GetAsList();
+    }
+
+    private async Task ConfirmDeleteSelectedAnalysisResults()
+    {
+        foreach (var analysisResult in _selectedAnalysisResults.ToList())
+        {
+            await analysisResultsRepository.Delete(analysisResult.Id);
+        }
+        _selectedAnalysisResults.Clear();
+        analysisResults = await analysisResultsRepository.GetAsList();
+    }
+
+    private async Task CancelClicked()
+    {
+        await addAnalysisResultModal.Hide();
+    }
+}

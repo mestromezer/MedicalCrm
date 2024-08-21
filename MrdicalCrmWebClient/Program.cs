@@ -2,6 +2,9 @@ using Blazorise;
 using Blazorise.Bootstrap5;
 using Blazorise.Icons.FontAwesome;
 using MedicalCrmLib;
+using MedicalCrmLib.Interfaces;
+using MedicalCrmLib.Model;
+using MedicalCrmLib.Repositories;
 using MrdicalCrmWebClient.Components;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,6 +14,13 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services.AddSingleton<DataMock>();
+builder.Services.AddScoped<IRepository<CleaningRecord, int>, CleaningRecordsRepository>();
+builder.Services.AddScoped<IRepository<Ppe, string>, PpeRepository>();
+builder.Services.AddScoped<IRepository<LampJournal, int>, LampJournalRepository>();
+builder.Services.AddScoped<IRepository<AnalysisResult, int>, AnalysisResultRpository>();
+builder.Services.AddScoped<IRepository<Service, int>, ServiceRepository>();
+builder.Services.AddScoped<IRepository<Order, int>, OrdersRepository>();
+builder.Services.AddScoped<IRepository<Client, int>, ClientRepostiory>();
 
 builder.Services
     .AddBlazorise(options =>

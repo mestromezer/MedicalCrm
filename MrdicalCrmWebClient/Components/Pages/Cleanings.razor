@@ -1,25 +1,26 @@
-﻿@page "/cleaning_records"
+﻿@page "/cleanings"
 
 @rendermode InteractiveServer
 
-@inject DataMock DataMock;
+@inject IRepository<CleaningRecord, int> cleaningRecordsRepository;   
 
 @using Blazorise.DataGrid
 @using Blazorise
+@using MedicalCrmLib.Interfaces
 
 <Card>
     <CardHeader>
         <Row Class="justify-content-between">
             <Column ColumnSize="ColumnSize.IsAuto">
-                <h4>Cleaning Records</h4>
+                <h4>График уборки</h4>
             </Column>
             <Column ColumnSize="ColumnSize.IsAuto">
                 <Button Color="Color.Primary" Clicked="ShowAddRecordModal">
-                    Add New Record
+                    Добавить запись
                 </Button>
                 <Button Color="Color.Danger" Disabled="@(_selectedRecords.Count == 0)"
                         Clicked="ConfirmDeleteSelectedRecords">
-                    Delete Selected
+                    Удалить выбранное
                 </Button>
             </Column>
         </Row>
@@ -43,27 +44,27 @@
 
                 <DataGridColumn TItem="CleaningRecord"
                                 Field="@nameof(CleaningRecord.Cabinet)"
-                                Caption="Cabinet" />
+                                Caption="Номер кабинета" />
 
                 <DataGridColumn TItem="CleaningRecord"
                                 Field="@nameof(CleaningRecord.EmployeeId)"
-                                Caption="Employee ID" />
+                                Caption="Номер сотрудника" />
 
                 <DataGridCommandColumn TItem="CleaningRecord" Width="150px">
                     <DisplayTemplate>
                         <Button Color="Color.Danger" Clicked="@(() => DeleteRecord(context.Id))">
-                            Delete
+                            Удалить
                         </Button>
                     </DisplayTemplate>
                 </DataGridCommandColumn>
             </DataGridColumns>
 
             <LoadingTemplate>
-                <p>Loading...</p>
+                <p>Загрузка...</p>
             </LoadingTemplate>
 
             <EmptyTemplate>
-                <p>No records available.</p>
+                <p>Нет записей.</p>
             </EmptyTemplate>
         </DataGrid>
     </CardBody>
@@ -71,7 +72,7 @@
 
 <Modal @ref="addRecordModal" Size="ModalSize.Small" ShowCloseIcon="true" Style="background-color: white;">
     <ModalHeader>
-        <h5>Add New Record</h5>
+        <h5>Добавить запись</h5>
     </ModalHeader>
     <ModalBody>
         <div class="mb-3">
@@ -85,10 +86,10 @@
     </ModalBody>
     <ModalFooter>
         <Button Color="Color.Primary" Clicked="AddNewRecord">
-            Add
+            Добавить
         </Button>
         <Button Color="Color.Secondary" Clicked="CancelClicked">
-            Cancel
+            Отмена
         </Button>
     </ModalFooter>
 </Modal>
@@ -98,11 +99,11 @@
     private CleaningRecord newRecord = new();
     private List<CleaningRecord> _selectedRecords = new();
     private Modal? addRecordModal = null!;
-    private int GridPageSize = 10;
+    private int GridPageSize = 5;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        cleaningRecords = DataMock.CleaningRecords;
+        cleaningRecords = await cleaningRecordsRepository.GetAsList();
     }
 
     private async Task ShowAddRecordModal()
@@ -113,29 +114,19 @@
 
     private async Task AddNewRecord()
     {
-        if (newRecord.Cabinet != 0 && newRecord.EmployeeId != 0)
-        {
-            var maxId = cleaningRecords.Any() ? cleaningRecords.Max(x => x.Id) : 0;
-            newRecord.Id = maxId + 1;
-            cleaningRecords.Add(newRecord);
-            await addRecordModal!.Hide();
-        }
+        await cleaningRecordsRepository.Add(newRecord);
     }
 
-    private void DeleteRecord(int id)
+    private async Task DeleteRecord(int id)
     {
-        var recordToDelete = cleaningRecords.FirstOrDefault(x => x.Id == id);
-        if (recordToDelete != null)
-        {
-            cleaningRecords.Remove(recordToDelete);
-        }
+        await cleaningRecordsRepository.Delete(id);
     }
 
-    private void ConfirmDeleteSelectedRecords()
+    private async Task ConfirmDeleteSelectedRecords()
     {
         foreach (var record in _selectedRecords.ToList())
         {
-            cleaningRecords.Remove(record);
+            await cleaningRecordsRepository.Delete(record.Id);
         }
         _selectedRecords.Clear();
     }

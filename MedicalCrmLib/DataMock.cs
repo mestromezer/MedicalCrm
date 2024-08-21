@@ -1,6 +1,4 @@
-﻿using MedicalCrmLib;
-using MedicalCrmLib.Model;
-using MedicalCrmLibLib.Model;
+﻿using MedicalCrmLib.Model;
 
 namespace MedicalCrmLib;
 
@@ -8,15 +6,17 @@ public class DataMock
 {
     public List<CleaningRecord> CleaningRecords { get; set; } = new();
     public List<Employee> Employees { get; set; } = new();
-    public List<LampJournal> ProductsJournalRecords { get; set; } = new();
+    public List<LampJournal> LampJournalRecords { get; set; } = new();
     public List<Ppe> PersonlaProtectiveEquipment { get; set; } = new();
     public List<Analysis> Analusises { get; set; } = new();
     public List<AnalysisResult> AnalysisesResults { get; set; } = new();
     public List<Order> Orders { get; set; } = new();
     public List<Service> Services { get; set; } = new();
+    public List<Client> Clients { get; set; } = new();
 
     public DataMock()
     {
+        InitClients();
         InitEmployees();
         InitCleaningLog();
         InitLampJournal();
@@ -25,6 +25,7 @@ public class DataMock
         InitAnalysisResults();
         InitOrders();
         InitServices();
+        InitClients();
     }
 
     private void InitEmployees()
@@ -96,7 +97,7 @@ public class DataMock
 
     private void InitLampJournal()
     {
-        ProductsJournalRecords.Add(new LampJournal
+        LampJournalRecords.Add(new LampJournal
         {
             Id = 1,
             RecordDateTime = DateTime.Now,
@@ -106,7 +107,7 @@ public class DataMock
             BestBeforeDate = new DateTime(2025, 8, 20)
         });
 
-        ProductsJournalRecords.Add(new LampJournal
+        LampJournalRecords.Add(new LampJournal
         {
             Id = 2,
             RecordDateTime = DateTime.Now.AddMinutes(-30),
@@ -116,7 +117,7 @@ public class DataMock
             BestBeforeDate = new DateTime(2025, 8, 21)
         });
 
-        ProductsJournalRecords.Add(new LampJournal
+        LampJournalRecords.Add(new LampJournal
         {
             Id = 3,
             RecordDateTime = DateTime.Now.AddHours(-1),
@@ -126,7 +127,7 @@ public class DataMock
             BestBeforeDate = new DateTime(2025, 8, 19)
         });
 
-        ProductsJournalRecords.Add(new LampJournal
+        LampJournalRecords.Add(new LampJournal
         {
             Id = 4,
             RecordDateTime = DateTime.Now.AddHours(-2),
@@ -136,7 +137,7 @@ public class DataMock
             BestBeforeDate = new DateTime(2025, 8, 22)
         });
 
-        ProductsJournalRecords.Add(new LampJournal
+        LampJournalRecords.Add(new LampJournal
         {
             Id = 5,
             RecordDateTime = DateTime.Now.AddHours(-3),
@@ -231,7 +232,7 @@ public class DataMock
         {
             Id = 1,
             AnalysisId = 1,
-            EmployeeId = 2001,
+            EmployeeId = 3,
             Report = "Substance A shows positive reaction.",
             Comments = "Requires further testing."
         });
@@ -240,7 +241,7 @@ public class DataMock
         {
             Id = 2,
             AnalysisId = 2,
-            EmployeeId = 2002,
+            EmployeeId = 4,
             Report = "Substance B is stable under conditions.",
             Comments = "No issues detected."
         });
@@ -249,7 +250,7 @@ public class DataMock
         {
             Id = 3,
             AnalysisId = 3,
-            EmployeeId = 2003,
+            EmployeeId = 4,
             Report = "Substance C shows signs of degradation.",
             Comments = "Recommend immediate action."
         });
@@ -258,7 +259,7 @@ public class DataMock
         {
             Id = 4,
             AnalysisId = 4,
-            EmployeeId = 2004,
+            EmployeeId = 3,
             Report = "Substance D is within acceptable parameters.",
             Comments = "Monitor over time."
         });
@@ -267,7 +268,7 @@ public class DataMock
         {
             Id = 5,
             AnalysisId = 5,
-            EmployeeId = 2005,
+            EmployeeId = 4,
             Report = "Substance E has unusual properties.",
             Comments = "Further analysis needed."
         });
@@ -366,6 +367,69 @@ public class DataMock
             Name = ServicesNames.DnaSequencing,
             Cost = 2500,
             LaboratoryName = "testlab1"
+        });
+    }
+
+    private void InitClients()
+    {
+        Clients.Add(new Client
+        {
+            Id = 1,
+            FullName = "Иванов Иван Иванович",
+            Address = "ул. Пушкина, д. 10, кв. 5",
+            PhoneNumber = "+7 123 456-78-90",
+            Email = "ivanov@example.com",
+            BirthDate = new DateTime(1985, 5, 12),
+            Gender = "М",
+            Company = "ООО Ромашка"
+        });
+
+        Clients.Add(new Client
+        {
+            Id = 2,
+            FullName = "Петров Петр Петрович",
+            Address = "ул. Лермонтова, д. 20, кв. 8",
+            PhoneNumber = "+7 987 654-32-10",
+            Email = "petrov@example.com",
+            BirthDate = new DateTime(1990, 8, 25),
+            Gender = "М",
+            Company = "АО Лилия"
+        });
+
+        Clients.Add(new Client
+        {
+            Id = 3,
+            FullName = "Сидорова Анна Андреевна",
+            Address = "ул. Чехова, д. 15, кв. 12",
+            PhoneNumber = "+7 345 678-90-12",
+            Email = "sidorova@example.com",
+            BirthDate = new DateTime(1992, 11, 4),
+            Gender = "Ж",
+            Company = "ЗАО Снежинка"
+        });
+
+        Clients.Add(new Client
+        {
+            Id = 4,
+            FullName = "Кузнецов Алексей Валерьевич",
+            Address = "ул. Гоголя, д. 30, кв. 3",
+            PhoneNumber = "+7 567 890-12-34",
+            Email = "kuznetsov@example.com",
+            BirthDate = new DateTime(1988, 3, 22),
+            Gender = "М",
+            Company = "ООО Сатурн"
+        });
+
+        Clients.Add(new Client
+        {
+            Id = 5,
+            FullName = "Максимова Ольга Васильевна",
+            Address = "ул. Суворова, д. 50, кв. 7",
+            PhoneNumber = "+7 234 567-89-01",
+            Email = "maksimova@example.com",
+            BirthDate = new DateTime(1983, 7, 19),
+            Gender = "Ж",
+            Company = "ИП Звезда"
         });
     }
 }

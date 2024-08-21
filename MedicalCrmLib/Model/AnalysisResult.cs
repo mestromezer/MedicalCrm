@@ -1,4 +1,4 @@
-﻿namespace MedicalCrmLibLib.Model;
+﻿namespace MedicalCrmLib.Model;
 
 public class AnalysisResult
 {
