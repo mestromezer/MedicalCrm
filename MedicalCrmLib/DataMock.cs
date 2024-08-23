@@ -13,6 +13,7 @@ public class DataMock
     public List<Order> Orders { get; set; } = new();
     public List<Service> Services { get; set; } = new();
     public List<Client> Clients { get; set; } = new();
+    public List<Laboratory> Laboratories { get; set; } = new();
 
     public DataMock()
     {
@@ -25,6 +26,7 @@ public class DataMock
         InitAnalysisResults();
         InitOrders();
         InitServices();
+        InitLaboratories();
     }
 
     private void InitEmployees()
@@ -429,6 +431,17 @@ public class DataMock
             BirthDate = new DateTime(1983, 7, 19),
             Gender = "Ж",
             Company = "ИП Звезда"
+        });
+    }
+
+    private void InitLaboratories()
+    {
+        Laboratories.Add(new Laboratory
+        {
+            Name = "testlab1",
+            Address = "тестовый адрес",
+            PhoneNumber = "8909321221",
+            NumberOfEmployees = 5
         });
     }
 }

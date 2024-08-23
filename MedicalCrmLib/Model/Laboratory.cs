@@ -2,8 +2,8 @@
 
 public class Laboratory
 {
-    public string? LaboratoryName { get; set; }
+    public string? Name { get; set; }
     public string? Address { get; set; }
     public string? PhoneNumber { get; set; }
-    public string? NumberOfEmployees { get; set; }
+    public int NumberOfEmployees { get; set; }
 }

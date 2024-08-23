@@ -1,0 +1,156 @@
+﻿@page "/laboratories"
+
+@rendermode InteractiveServer
+
+@inject IRepository<Laboratory, string> laboratoryRepository
+
+@using Blazorise.DataGrid
+@using Blazorise
+@using MedicalCrmLib.Interfaces
+
+<Card>
+    <CardHeader>
+        <Row Class="justify-content-between">
+            <Column ColumnSize="ColumnSize.IsAuto">
+                <h4>Лаборатории</h4>
+            </Column>
+            <Column ColumnSize="ColumnSize.IsAuto">
+                <Button Color="Color.Primary" Clicked="ShowAddLaboratoryModal">
+                    Добавить лабораторию
+                </Button>
+                <Button Color="Color.Danger" Disabled="@(_selectedLaboratories.Count == 0)"
+                        Clicked="ConfirmDeleteSelectedLaboratories">
+                    Удалить выбранное
+                </Button>
+            </Column>
+        </Row>
+    </CardHeader>
+    <CardBody>
+        <DataGrid TItem="Laboratory"
+                  Data="@laboratories"
+                  SelectionMode="DataGridSelectionMode.Multiple"
+                  @bind-SelectedRows="_selectedLaboratories"
+                  ShowPager="true"
+                  PageSize="@GridPageSize"
+                  Responsive Striped>
+            <DataGridColumns>
+                <DataGridMultiSelectColumn TItem="Laboratory" Width="30px" />
+
+                <DataGridColumn TItem="Laboratory"
+                                Field="@nameof(Laboratory.Name)"
+                                Caption="Название" />
+
+                <DataGridColumn TItem="Laboratory"
+                                Field="@nameof(Laboratory.Address)"
+                                Caption="Адрес" />
+
+                <DataGridColumn TItem="Laboratory"
+                                Field="@nameof(Laboratory.PhoneNumber)"
+                                Caption="Номер телефона" />
+
+                <DataGridColumn TItem="Laboratory"
+                                Field="@nameof(Laboratory.NumberOfEmployees)"
+                                Caption="Количество сотрудников" />
+
+                <DataGridCommandColumn TItem="Laboratory" Width="150px">
+                    <DisplayTemplate>
+                        <Button Color="Color.Danger" Clicked="@(() => DeleteLaboratory(context.Name))">
+                            Удалить
+                        </Button>
+                    </DisplayTemplate>
+                </DataGridCommandColumn>
+            </DataGridColumns>
+
+            <LoadingTemplate>
+                <p>Загрузка...</p>
+            </LoadingTemplate>
+
+            <EmptyTemplate>
+                <p>Нет записей.</p>
+            </EmptyTemplate>
+        </DataGrid>
+    </CardBody>
+</Card>
+
+<Modal @ref="addLaboratoryModal" Size="ModalSize.Small" ShowCloseIcon="true" Style="background-color: white;">
+    <ModalHeader>
+        <h5>Добавить лабораторию</h5>
+    </ModalHeader>
+    <ModalBody>
+        <div class="mb-3">
+            <label for="name">Название:</label>
+            <input type="text" id="name" @bind="newLaboratory.Name" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label for="address">Адрес:</label>
+            <input type="text" id="address" @bind="newLaboratory.Address" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label for="phoneNumber">Номер телефона:</label>
+            <input type="text" id="phoneNumber" @bind="newLaboratory.PhoneNumber" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label for="numberOfEmployees">Количество сотрудников:</label>
+            <input type="number" id="numberOfEmployees" @bind="newLaboratory.NumberOfEmployees" class="form-control" />
+        </div>
+    </ModalBody>
+    <ModalFooter>
+        <Button Color="Color.Primary" Clicked="AddNewLaboratory">
+            Добавить
+        </Button>
+        <Button Color="Color.Secondary" Clicked="CancelClicked">
+            Отмена
+        </Button>
+    </ModalFooter>
+</Modal>
+
+@code {
+    private List<Laboratory> laboratories = new();
+    private Laboratory newLaboratory = new();
+    private List<Laboratory> _selectedLaboratories = new();
+    private Modal? addLaboratoryModal = null!;
+    private int GridPageSize = 5;
+
+    protected override async Task OnInitializedAsync()
+    {
+        laboratories = await laboratoryRepository.GetAsList();
+    }
+
+    private async Task ShowAddLaboratoryModal()
+    {
+        newLaboratory = new Laboratory();
+        await addLaboratoryModal!.Show();
+    }
+
+    private async Task AddNewLaboratory()
+    {
+        await laboratoryRepository.Add(newLaboratory);
+        laboratories = await laboratoryRepository.GetAsList();
+        await addLaboratoryModal.Hide();
+    }
+
+    private async Task DeleteLaboratory(string? name)
+    {
+        var laboratory = laboratories.FirstOrDefault(l => l.Name == name);
+        if (laboratory != null)
+        {
+            await laboratoryRepository.Delete(laboratory.Name);
+            laboratories = await laboratoryRepository.GetAsList(); 
+        }
+    }
+
+    private async Task ConfirmDeleteSelectedLaboratories()
+    {
+        foreach (var laboratory in _selectedLaboratories.ToList())
+        {
+            await laboratoryRepository.Delete(laboratory.Name);
+        }
+        _selectedLaboratories.Clear();
+        laboratories = await laboratoryRepository.GetAsList();
+    }
+
+    private async Task CancelClicked()
+    {
+        await addLaboratoryModal.Hide();
+    }
+}

@@ -21,6 +21,7 @@ builder.Services.AddScoped<IRepository<AnalysisResult, int>, AnalysisResultRposi
 builder.Services.AddScoped<IRepository<Service, int>, ServiceRepository>();
 builder.Services.AddScoped<IRepository<Order, int>, OrdersRepository>();
 builder.Services.AddScoped<IRepository<Client, int>, ClientRepostiory>();
+builder.Services.AddScoped<IRepository<Laboratory, string>, LaboratoryRespository>();
 
 builder.Services
     .AddBlazorise(options =>
