@@ -1,0 +1,148 @@
+@page "/analyses"
+
+@rendermode InteractiveServer
+
+@inject IRepository<Analysis, int> analysisRepository;
+
+@using Blazorise.DataGrid
+@using Blazorise
+@using MedicalCrmLib.Interfaces
+
+<Card>
+    <CardHeader>
+        <Row Class="justify-content-between">
+            <Column ColumnSize="ColumnSize.IsAuto">
+                <h4>Анализы</h4>
+            </Column>
+            <Column ColumnSize="ColumnSize.IsAuto">
+                <Button Color="Color.Primary" Clicked="ShowAddAnalysisModal">
+                    Добавить анализ
+                </Button>
+                <Button Color="Color.Danger" Disabled="@(_selectedAnalyses.Count == 0)"
+                        Clicked="ConfirmDeleteSelectedAnalyses">
+                    Удалить выбранное
+                </Button>
+            </Column>
+        </Row>
+    </CardHeader>
+    <CardBody>
+        <DataGrid TItem="Analysis"
+                  Data="@analyses"
+                  SelectionMode="DataGridSelectionMode.Multiple"
+                  @bind-SelectedRows="_selectedAnalyses"
+                  ShowPager="true"
+                  PageSize="@GridPageSize"
+                  Responsive Striped>
+            <DataGridColumns>
+                <DataGridMultiSelectColumn TItem="Analysis" Width="30px" />
+
+                <DataGridColumn TItem="Analysis"
+                                Field="@nameof(Analysis.AnalysisCode)"
+                                Caption="Код анализа" />
+
+                <DataGridColumn TItem="Analysis"
+                                Field="@nameof(Analysis.SampleDate)"
+                                Caption="Дата забора" />
+
+                <DataGridColumn TItem="Analysis"
+                                Field="@nameof(Analysis.BiomaterialType)"
+                                Caption="Тип биоматериала" />
+
+                <DataGridColumn TItem="Analysis"
+                                Field="@nameof(Analysis.OrderId)"
+                                Caption="ID заказа" />
+
+                <DataGridCommandColumn TItem="Analysis" Width="150px">
+                    <DisplayTemplate>
+                        <Button Color="Color.Danger" Clicked="@(() => DeleteAnalysis(context.AnalysisCode))">
+                            Удалить
+                        </Button>
+                    </DisplayTemplate>
+                </DataGridCommandColumn>
+            </DataGridColumns>
+
+            <LoadingTemplate>
+                <p>Загрузка...</p>
+            </LoadingTemplate>
+
+            <EmptyTemplate>
+                <p>Нет записей.</p>
+            </EmptyTemplate>
+        </DataGrid>
+    </CardBody>
+</Card>
+
+<Modal @ref="addAnalysisModal" Size="ModalSize.Small" ShowCloseIcon="true" Style="background-color: white;">
+    <ModalHeader>
+        <h5>Добавить анализ</h5>
+    </ModalHeader>
+    <ModalBody>
+        <div class="mb-3">
+            <label for="sampleDate">Дата забора:</label>
+            <input type="date" id="sampleDate" @bind="newAnalysis.SampleDate" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label for="biomaterialType">Тип биоматериала:</label>
+            <input type="text" id="biomaterialType" @bind="newAnalysis.BiomaterialType" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label for="orderId">ID заказа:</label>
+            <input type="number" id="orderId" @bind="newAnalysis.OrderId" class="form-control" />
+        </div>
+    </ModalBody>
+    <ModalFooter>
+        <Button Color="Color.Primary" Clicked="AddNewAnalysis">
+            Добавить
+        </Button>
+        <Button Color="Color.Secondary" Clicked="CancelClicked">
+            Отмена
+        </Button>
+    </ModalFooter>
+</Modal>
+
+@code {
+    private List<Analysis> analyses = new();
+    private Analysis newAnalysis = new();
+    private List<Analysis> _selectedAnalyses = new();
+    private Modal? addAnalysisModal = null!;
+    private int GridPageSize = 5;
+
+    protected override async Task OnInitializedAsync()
+    {
+        analyses = await analysisRepository.GetAsList();
+    }
+
+    private async Task ShowAddAnalysisModal()
+    {
+        newAnalysis = new Analysis();
+        await addAnalysisModal!.Show();
+    }
+
+    private async Task AddNewAnalysis()
+    {
+        await analysisRepository.Add(newAnalysis);
+        analyses = await analysisRepository.GetAsList();
+        await addAnalysisModal.Hide();
+    }
+
+    private async Task DeleteAnalysis(int analysisCode)
+    {
+        await analysisRepository.Delete(analysisCode);
+        analyses = await analysisRepository.GetAsList();
+    }
+
+    private async Task ConfirmDeleteSelectedAnalyses()
+    {
+        foreach (var analysis in _selectedAnalyses.ToList())
+        {
+            await analysisRepository.Delete(analysis.AnalysisCode);
+        }
+        _selectedAnalyses.Clear();
+        analyses = await analysisRepository.GetAsList();
+    }
+
+    private async Task CancelClicked()
+    {
+        await addAnalysisModal.Hide();
+    }
+}

@@ -5,6 +5,7 @@ using MedicalCrmLib;
 using MedicalCrmLib.Interfaces;
 using MedicalCrmLib.Model;
 using MedicalCrmLib.Repositories;
+using Microsoft.EntityFrameworkCore;
 using MrdicalCrmWebClient.Components;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,6 +13,8 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+builder.Services.AddDbContext<CrmDbContext>();
 
 builder.Services.AddTransient<IRepository<Account, string>, AccountRepository>();
 builder.Services.AddTransient<IRepository<Analysis, int>, AnalysisRepository>();

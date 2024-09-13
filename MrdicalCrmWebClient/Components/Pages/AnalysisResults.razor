@@ -2,7 +2,7 @@
 
 @rendermode InteractiveServer
 
-@inject IRepository<AnalysisResult, int> analysisResultsRepository;
+@inject IRepository<AnalysisResult, (int MeasuredSubstanceId, int AnalysisCode, int EmployeeId)> analysisResultsRepository;
 
 @using Blazorise.DataGrid
 @using Blazorise
@@ -34,33 +34,31 @@
                   PageSize="@GridPageSize"
                   Responsive Striped>
             <DataGridColumns>
-                <DataGridMultiSelectColumn TItem="AnalysisResult" Width="30px" />
+                <DataGridMultiSelectColumn TItem="AnalysisResult" Width="30px"/>
 
                 <DataGridColumn TItem="AnalysisResult"
-                                Field="@nameof(AnalysisResult.Id)"
-                                Caption="ID"
-                                Sortable="false"
-                                Filterable="false" />
+                                Field="@nameof(AnalysisResult.MeasuredSubstanceId)"
+                                Caption="ID измеряемого вещества"/>
 
                 <DataGridColumn TItem="AnalysisResult"
-                                Field="@nameof(AnalysisResult.AnalysisId)"
-                                Caption="ID анализа" />
+                                Field="@nameof(AnalysisResult.AnalysisCode)"
+                                Caption="ID анализа"/>
 
                 <DataGridColumn TItem="AnalysisResult"
                                 Field="@nameof(AnalysisResult.EmployeeId)"
-                                Caption="ID сотрудника" />
+                                Caption="ID сотрудника"/>
 
                 <DataGridColumn TItem="AnalysisResult"
-                                Field="@nameof(AnalysisResult.Report)"
-                                Caption="Отчет" />
+                                Field="@nameof(AnalysisResult.AnalysisResultText)"
+                                Caption="Результат анализа"/>
 
                 <DataGridColumn TItem="AnalysisResult"
-                                Field="@nameof(AnalysisResult.Comments)"
-                                Caption="Комментарии" />
+                                Field="@nameof(AnalysisResult.DoctorComment)"
+                                Caption="Комментарий врача"/>
 
                 <DataGridCommandColumn TItem="AnalysisResult" Width="150px">
                     <DisplayTemplate>
-                        <Button Color="Color.Danger" Clicked="@(() => DeleteAnalysisResult(context.Id))">
+                        <Button Color="Color.Danger" Clicked="@(() => DeleteAnalysisResult(context.MeasuredSubstanceId, context.AnalysisCode, context.EmployeeId))">
                             Удалить
                         </Button>
                     </DisplayTemplate>
@@ -84,20 +82,24 @@
     </ModalHeader>
     <ModalBody>
         <div class="mb-3">
+            <label for="measuredSubstanceId">ID измеряемого вещества:</label>
+            <input type="number" id="measuredSubstanceId" @bind="newAnalysisResult.MeasuredSubstanceId" class="form-control"/>
+        </div>
+        <div class="mb-3">
             <label for="analysisId">ID анализа:</label>
-            <input type="number" id="analysisId" @bind="newAnalysisResult.AnalysisId" class="form-control" />
+            <input type="number" id="analysisId" @bind="newAnalysisResult.AnalysisCode" class="form-control"/>
         </div>
         <div class="mb-3">
             <label for="employeeId">ID сотрудника:</label>
-            <input type="number" id="employeeId" @bind="newAnalysisResult.EmployeeId" class="form-control" />
+            <input type="number" id="employeeId" @bind="newAnalysisResult.EmployeeId" class="form-control"/>
         </div>
         <div class="mb-3">
-            <label for="report">Отчет:</label>
-            <input type="text" id="report" @bind="newAnalysisResult.Report" class="form-control" />
+            <label for="result">Результат анализа:</label>
+            <input type="text" id="result" @bind="newAnalysisResult.AnalysisResultText" class="form-control"/>
         </div>
         <div class="mb-3">
-            <label for="comments">Комментарии:</label>
-            <input type="text" id="comments" @bind="newAnalysisResult.Comments" class="form-control" />
+            <label for="comment">Комментарий врача:</label>
+            <input type="text" id="comment" @bind="newAnalysisResult.DoctorComment" class="form-control"/>
         </div>
     </ModalBody>
     <ModalFooter>
@@ -135,9 +137,9 @@
         await addAnalysisResultModal.Hide();
     }
 
-    private async Task DeleteAnalysisResult(int id)
+    private async Task DeleteAnalysisResult(int measuredSubstanceId, int analysisCode, int employeeId)
     {
-        await analysisResultsRepository.Delete(id);
+        await analysisResultsRepository.Delete((measuredSubstanceId, analysisCode, employeeId));
         analysisResults = await analysisResultsRepository.GetAsList();
     }
 
@@ -145,8 +147,9 @@
     {
         foreach (var analysisResult in _selectedAnalysisResults.ToList())
         {
-            await analysisResultsRepository.Delete(analysisResult.Id);
+            await analysisResultsRepository.Delete((analysisResult.MeasuredSubstanceId, analysisResult.AnalysisCode, analysisResult.EmployeeId));
         }
+
         _selectedAnalysisResults.Clear();
         analysisResults = await analysisResultsRepository.GetAsList();
     }
@@ -155,4 +158,5 @@
     {
         await addAnalysisResultModal.Hide();
     }
+
 }
