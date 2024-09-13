@@ -3,7 +3,8 @@ using Microsoft.EntityFrameworkCore;
 
 public abstract class CrmDbContext : DbContext
 {
-    static readonly string connectionString = "Server=localhost; User ID=root; Password=1; Database=mydb";
+    private const string ConnectionString = "Server=localhost; User ID=root; Password=1; Database=mydb";
+
     // DbSet для всех таблиц базы данных
     public DbSet<Account> Accounts { get; set; }
     public DbSet<Analysis> Analyses { get; set; }
@@ -24,7 +25,7 @@ public abstract class CrmDbContext : DbContext
     // Настройка подключения к базе данных
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        optionsBuilder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
+        optionsBuilder.UseMySql(ConnectionString, ServerVersion.AutoDetect(ConnectionString));
     }
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
