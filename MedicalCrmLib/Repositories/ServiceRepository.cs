@@ -1,53 +1,61 @@
-﻿using MedicalCrmLib.Interfaces;
+using MedicalCrmLib.Interfaces;
 using MedicalCrmLib.Model;
+using Microsoft.EntityFrameworkCore;
 
 namespace MedicalCrmLib.Repositories;
 
-public class ServiceRepository(DataMock dataMock) : IRepository<Service, int>
+public class ServiceRepository : IRepository<Service, int>
 {
-    private List<Service> Services = dataMock.Services;
+    private readonly CrmDbContext _context;
 
-    public Task Add(Service newRecord)
+    public ServiceRepository(CrmDbContext context)
     {
-        if (string.IsNullOrWhiteSpace(newRecord.Name))
-            throw new ArgumentException(nameof(newRecord.Name));
-
-        if (newRecord.Cost < 1)
-            throw new ArgumentException(nameof(newRecord.Cost));
-
-        if (string.IsNullOrWhiteSpace(newRecord.LaboratoryName))
-            throw new ArgumentException(nameof(newRecord.LaboratoryName));
-
-        var maxId = Services.Any() ? Services.Max(x => x.Id) : 0;
-        newRecord.Id = maxId + 1;
-        Services.Add(newRecord);
-
-        return Task.CompletedTask;
+        _context = context;
     }
 
-    public Task Delete(int key)
+    // Получение всех записей Service
+    public async Task<List<Service>> GetAsList()
     {
-        var recordToDelete = Services.FirstOrDefault(x => x.Id == key);
-        if (recordToDelete != null)
+        return await _context.Services.ToListAsync();
+    }
+
+    // Получение записей Service с фильтром
+    public async Task<List<Service>> GetAsList(Func<Service, bool> predicate)
+    {
+        return await Task.FromResult(_context.Services
+            .Where(predicate)
+            .ToList());
+    }
+
+    // Добавление новой записи Service
+    public async Task Add(Service newRecord)
+    {
+        await _context.Services.AddAsync(newRecord);
+        await _context.SaveChangesAsync();
+    }
+
+    // Удаление записи Service по ключу (ID_услуги)
+    public async Task Delete(int key)
+    {
+        var service = await _context.Services.FindAsync(key);
+        if (service != null)
         {
-            Services.Remove(recordToDelete);
+            _context.Services.Remove(service);
+            await _context.SaveChangesAsync();
         }
-
-        return Task.CompletedTask;
     }
 
-    public Task<List<Service>> GetAsList()
+    // Обновление существующей записи Service
+    public async Task Update(Service newValue)
     {
-        return Task.FromResult(new List<Service>(Services));
-    }
+        var service = await _context.Services.FindAsync(newValue.ServiceId);
+        if (service != null)
+        {
+            service.ServiceTypeId = newValue.ServiceTypeId;
+            service.Cost = newValue.Cost;
 
-    public Task<List<Service>> GetAsList(Func<Service, bool> predicate)
-    {
-        return Task.FromResult(new List<Service>(Services.Where(predicate).ToList()));
-    }
-
-    public Task Update(Service newValue)
-    {
-        throw new NotImplementedException();
+            _context.Services.Update(service);
+            await _context.SaveChangesAsync();
+        }
     }
 }

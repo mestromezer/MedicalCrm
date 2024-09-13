@@ -13,15 +13,20 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-builder.Services.AddSingleton<DataMock>();
-builder.Services.AddScoped<IRepository<CleaningRecord, int>, CleaningRecordsRepository>();
-builder.Services.AddScoped<IRepository<Ppe, string>, PpeRepository>();
-builder.Services.AddScoped<IRepository<LampJournal, int>, LampJournalRepository>();
-builder.Services.AddScoped<IRepository<AnalysisResult, int>, AnalysisResultRpository>();
-builder.Services.AddScoped<IRepository<Service, int>, ServiceRepository>();
-builder.Services.AddScoped<IRepository<Order, int>, OrdersRepository>();
-builder.Services.AddScoped<IRepository<Client, int>, ClientRepostiory>();
-builder.Services.AddScoped<IRepository<Laboratory, string>, LaboratoryRespository>();
+builder.Services.AddTransient<IRepository<Account, string>, AccountRepository>();
+builder.Services.AddTransient<IRepository<Analysis, int>, AnalysisRepository>();
+builder.Services.AddTransient<IRepository<AnalysisResult, (int MeasuredSubstanceId, int AnalysisCode, int EmployeeId)>, AnalysisResultRepository>();
+builder.Services.AddTransient<IRepository<CleaningSchedule, (int RoomNumber, DateTime CleaningDate)>, CleaningScheduleRepository>();
+builder.Services.AddTransient<IRepository<Client, int>, ClientRepository>();
+builder.Services.AddTransient<IRepository<Contract, int>, ContractRepository>();
+builder.Services.AddTransient<IRepository<Employee, int>, EmployeeRepository>();
+builder.Services.AddTransient<IRepository<Journal, (int JournalId, DateTime Date)>, JournalRepository>();
+builder.Services.AddTransient<IRepository<Laboratory, string>, LaboratoryRepository>();
+builder.Services.AddTransient<IRepository<MeasuredSubstance, int>, MeasuredSubstanceRepository>();
+builder.Services.AddTransient<IRepository<Order, int>, OrderRepository>();
+builder.Services.AddTransient<IRepository<OrderService, int>, OrderServiceRepository>();
+builder.Services.AddTransient<IRepository<ProtectiveEquipmentJournal, (string EquipmentName, int EmployeeId)>, ProtectiveEquipmentJournalRepository>();
+builder.Services.AddTransient<IRepository<Service, int>, ServiceRepository>();
 
 builder.Services
     .AddBlazorise(options =>
