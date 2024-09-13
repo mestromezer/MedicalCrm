@@ -1,6 +1,8 @@
 using MedicalCrmLib.Model;
 using Microsoft.EntityFrameworkCore;
 
+namespace MedicalCrmLib;
+
 public abstract class CrmDbContext : DbContext
 {
     private const string ConnectionString = "Server=localhost; User ID=root; Password=1; Database=mydb";

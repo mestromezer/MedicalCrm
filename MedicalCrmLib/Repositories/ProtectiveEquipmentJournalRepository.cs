@@ -1,3 +1,4 @@
+using MedicalCrmLib;
 using MedicalCrmLib.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
