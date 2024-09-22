@@ -1,0 +1,163 @@
+@page "/orders"
+
+@rendermode InteractiveServer
+
+@using Blazorise.DataGrid
+@using MedicalCrmLib.Interfaces
+
+@inject IRepository<MedicalCrmLib.Model.Order, int> orderRepository;
+
+<Card>
+    <CardHeader>
+        <Row Class="justify-content-between">
+            <Column ColumnSize="ColumnSize.IsAuto">
+                <h4>Заказы</h4>
+            </Column>
+            <Column ColumnSize="ColumnSize.IsAuto">
+                <Button Color="Color.Primary" Clicked="ShowAddOrderModal">
+                    Добавить заказ
+                </Button>
+                <Button Color="Color.Danger" Disabled="@(_selectedOrders.Count == 0)"
+                        Clicked="ConfirmDeleteSelectedOrders">
+                    Удалить выбранное
+                </Button>
+            </Column>
+        </Row>
+    </CardHeader>
+    <CardBody>
+        <DataGrid TItem="MedicalCrmLib.Model.Order"
+                  Data="@orders"
+                  SelectionMode="DataGridSelectionMode.Multiple"
+                  @bind-SelectedRows="_selectedOrders"
+                  ShowPager="true"
+                  PageSize="@GridPageSize"
+                  Responsive Striped>
+            <DataGridColumns>
+                <DataGridMultiSelectColumn TItem="MedicalCrmLib.Model.Order" Width="30px" />
+
+                <DataGridColumn TItem="MedicalCrmLib.Model.Order"
+                                Field="@nameof(MedicalCrmLib.Model.Order.OrderId)"
+                                Caption="ID заказа"></DataGridColumn>
+
+                <DataGridColumn TItem="MedicalCrmLib.Model.Order"
+                                Field="@nameof(MedicalCrmLib.Model.Order.OrderDate)"
+                                Caption="Дата заказа"></DataGridColumn>
+
+                <DataGridColumn TItem="MedicalCrmLib.Model.Order"
+                                Field="@nameof(MedicalCrmLib.Model.Order.OrderAmount)"
+                                Caption="Сумма заказа" />
+
+                <DataGridColumn TItem="MedicalCrmLib.Model.Order"
+                                Field="@nameof(MedicalCrmLib.Model.Order.ServiceCount)"
+                                Caption="Количество услуг" />
+
+                <DataGridColumn TItem="MedicalCrmLib.Model.Order"
+                                Field="@nameof(MedicalCrmLib.Model.Order.EmployeeId)"
+                                Caption="ID сотрудника" />
+
+                <DataGridColumn TItem="MedicalCrmLib.Model.Order"
+                                Field="@nameof(MedicalCrmLib.Model.Order.ClientId)"
+                                Caption="ID клиента" />
+
+                <DataGridCommandColumn TItem="MedicalCrmLib.Model.Order" Width="150px">
+                    <DisplayTemplate>
+                        <Button Color="Color.Danger" Clicked="@(() => DeleteOrder(context.OrderId))">
+                            Удалить
+                        </Button>
+                    </DisplayTemplate>
+                </DataGridCommandColumn>
+            </DataGridColumns>
+
+            <LoadingTemplate>
+                <p>Загрузка...</p>
+            </LoadingTemplate>
+
+            <EmptyTemplate>
+                <p>Нет записей.</p>
+            </EmptyTemplate>
+        </DataGrid>
+    </CardBody>
+</Card>
+
+<Modal @ref="addOrderModal" Size="ModalSize.Small" ShowCloseIcon="true" Style="background-color: white;">
+    <ModalHeader>
+        <h5>Добавить заказ</h5>
+    </ModalHeader>
+    <ModalBody>
+        <div class="mb-3">
+            <label for="orderDate">Дата заказа:</label>
+            <input type="date" id="orderDate" @bind="newOrder.OrderDate" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label for="orderAmount">Сумма заказа:</label>
+            <input type="number" id="orderAmount" @bind="newOrder.OrderAmount" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label for="serviceCount">Количество услуг:</label>
+            <input type="number" id="serviceCount" @bind="newOrder.ServiceCount" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label for="employeeId">ID сотрудника:</label>
+            <input type="number" id="employeeId" @bind="newOrder.EmployeeId" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label for="clientId">ID клиента:</label>
+            <input type="number" id="clientId" @bind="newOrder.ClientId" class="form-control" />
+        </div>
+    </ModalBody>
+    <ModalFooter>
+        <Button Color="Color.Primary" Clicked="AddNewOrder">
+            Добавить
+        </Button>
+        <Button Color="Color.Secondary" Clicked="CancelClicked">
+            Отмена
+        </Button>
+    </ModalFooter>
+</Modal>
+
+@code {
+    private List<MedicalCrmLib.Model.Order> orders = new();
+    private MedicalCrmLib.Model.Order newOrder = new();
+    private List<MedicalCrmLib.Model.Order> _selectedOrders = new();
+    private Modal? addOrderModal = null!;
+    private int GridPageSize = 5;
+
+    protected override async Task OnInitializedAsync()
+    {
+        orders = await orderRepository.GetAsList();
+    }
+
+    private async Task ShowAddOrderModal()
+    {
+        newOrder = new MedicalCrmLib.Model.Order();
+        await addOrderModal!.Show();
+    }
+
+    private async Task AddNewOrder()
+    {
+        await orderRepository.Add(newOrder);
+        orders = await orderRepository.GetAsList();
+        await addOrderModal.Hide();
+    }
+
+    private async Task DeleteOrder(int orderId)
+    {
+        await orderRepository.Delete(orderId);
+        orders = await orderRepository.GetAsList();
+    }
+
+    private async Task ConfirmDeleteSelectedOrders()
+    {
+        foreach (var order in _selectedOrders.ToList())
+        {
+            await orderRepository.Delete(order.OrderId);
+        }
+        _selectedOrders.Clear();
+        orders = await orderRepository.GetAsList();
+    }
+
+    private async Task CancelClicked()
+    {
+        await addOrderModal.Hide();
+    }
+}

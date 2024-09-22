@@ -78,6 +78,10 @@
     </ModalHeader>
     <ModalBody>
         <div class="mb-3">
+            <label for="analysisCode">Код анализа:</label>
+            <input type="number" id="analysisCode" @bind="newAnalysis.AnalysisCode" class="form-control" />
+        </div>
+        <div class="mb-3">
             <label for="sampleDate">Дата забора:</label>
             <input type="date" id="sampleDate" @bind="newAnalysis.SampleDate" class="form-control" />
         </div>

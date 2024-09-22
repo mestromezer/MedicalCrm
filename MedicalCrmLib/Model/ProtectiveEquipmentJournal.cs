@@ -1,10 +1,11 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
+[PrimaryKey(nameof(EquipmentName), nameof(EmployeeId))]
 [Table("Журнал_СИЗ", Schema = "mydb")]
 public class ProtectiveEquipmentJournal
 {
-    [Key]
     [Column("Наименование_СИЗ", Order = 0)]
     [Required]
     [StringLength(45)]
@@ -13,7 +14,6 @@ public class ProtectiveEquipmentJournal
     [Column("Количество_СИЗов")]
     public int? EquipmentCount { get; set; }  // Количество СИЗов
 
-    [Key]
     [Column("Сотрудник_ID_Сотрудника", Order = 1)]
     [Required]
     public int EmployeeId { get; set; }  // Внешний ключ на таблицу Сотрудник (часть составного ключа)

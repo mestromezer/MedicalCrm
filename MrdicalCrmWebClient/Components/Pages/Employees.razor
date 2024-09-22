@@ -1,0 +1,172 @@
+@page "/employees"
+
+@rendermode InteractiveServer
+
+@inject IRepository<Employee, int> employeeRepository;
+
+@using Blazorise.DataGrid
+@using Blazorise
+@using MedicalCrmLib.Interfaces
+
+<Card>
+    <CardHeader>
+        <Row Class="justify-content-between">
+            <Column ColumnSize="ColumnSize.IsAuto">
+                <h4>Сотрудники</h4>
+            </Column>
+            <Column ColumnSize="ColumnSize.IsAuto">
+                <Button Color="Color.Primary" Clicked="ShowAddEmployeeModal">
+                    Добавить сотрудника
+                </Button>
+                <Button Color="Color.Danger" Disabled="@(_selectedEmployees.Count == 0)"
+                        Clicked="ConfirmDeleteSelectedEmployees">
+                    Удалить выбранное
+                </Button>
+            </Column>
+        </Row>
+    </CardHeader>
+    <CardBody>
+        <DataGrid TItem="Employee"
+                  Data="@employees"
+                  SelectionMode="DataGridSelectionMode.Multiple"
+                  @bind-SelectedRows="_selectedEmployees"
+                  ShowPager="true"
+                  PageSize="@GridPageSize"
+                  Responsive Striped>
+            <DataGridColumns>
+                <DataGridMultiSelectColumn TItem="Employee" Width="30px" />
+
+                <DataGridColumn TItem="Employee"
+                                Field="@nameof(Employee.EmployeeId)"
+                                Caption="ID сотрудника" />
+
+                <DataGridColumn TItem="Employee"
+                                Field="@nameof(Employee.FullName)"
+                                Caption="ФИО" />
+
+                <DataGridColumn TItem="Employee"
+                                Field="@nameof(Employee.BirthDate)"
+                                Caption="Дата рождения" />
+
+                <DataGridColumn TItem="Employee"
+                                Field="@nameof(Employee.PhoneNumber)"
+                                Caption="Контактный номер" />
+
+                <DataGridColumn TItem="Employee"
+                                Field="@nameof(Employee.Position)"
+                                Caption="Должность" />
+
+                <DataGridColumn TItem="Employee"
+                                Field="@nameof(Employee.LaboratoryName)"
+                                Caption="Название лаборатории" />
+
+                <DataGridColumn TItem="Employee"
+                                Field="@nameof(Employee.AccountLogin)"
+                                Caption="Логин аккаунта" />
+
+                <DataGridCommandColumn TItem="Employee" Width="150px">
+                    <DisplayTemplate>
+                        <Button Color="Color.Danger" Clicked="@(() => DeleteEmployee(context.EmployeeId))">
+                            Удалить
+                        </Button>
+                    </DisplayTemplate>
+                </DataGridCommandColumn>
+            </DataGridColumns>
+
+            <LoadingTemplate>
+                <p>Загрузка...</p>
+            </LoadingTemplate>
+
+            <EmptyTemplate>
+                <p>Нет записей.</p>
+            </EmptyTemplate>
+        </DataGrid>
+    </CardBody>
+</Card>
+
+<Modal @ref="addEmployeeModal" Size="ModalSize.Small" ShowCloseIcon="true" Style="background-color: white;">
+    <ModalHeader>
+        <h5>Добавить сотрудника</h5>
+    </ModalHeader>
+    <ModalBody>
+        <div class="mb-3">
+            <label for="fullName">ФИО:</label>
+            <input type="text" id="fullName" @bind="newEmployee.FullName" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label for="birthDate">Дата рождения:</label>
+            <input type="date" id="birthDate" @bind="newEmployee.BirthDate" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label for="phoneNumber">Контактный номер:</label>
+            <input type="text" id="phoneNumber" @bind="newEmployee.PhoneNumber" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label for="position">Должность:</label>
+            <input type="text" id="position" @bind="newEmployee.Position" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label for="laboratoryName">Название лаборатории:</label>
+            <input type="text" id="laboratoryName" @bind="newEmployee.LaboratoryName" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label for="accountLogin">Логин аккаунта:</label>
+            <input type="text" id="accountLogin" @bind="newEmployee.AccountLogin" class="form-control" />
+        </div>
+    </ModalBody>
+    <ModalFooter>
+        <Button Color="Color.Primary" Clicked="AddNewEmployee">
+            Добавить
+        </Button>
+        <Button Color="Color.Secondary" Clicked="CancelClicked">
+            Отмена
+        </Button>
+    </ModalFooter>
+</Modal>
+
+@code {
+    private List<Employee> employees = new();
+    private Employee newEmployee = new();
+    private List<Employee> _selectedEmployees = new();
+    private Modal? addEmployeeModal = null!;
+    private int GridPageSize = 5;
+
+    protected override async Task OnInitializedAsync()
+    {
+        employees = await employeeRepository.GetAsList();
+    }
+
+    private async Task ShowAddEmployeeModal()
+    {
+        newEmployee = new Employee();  // Создаем новый объект Employee без задания EmployeeId
+        await addEmployeeModal!.Show();
+    }
+
+    private async Task AddNewEmployee()
+    {
+        await employeeRepository.Add(newEmployee);  // EmployeeId не задается вручную
+        employees = await employeeRepository.GetAsList();
+        await addEmployeeModal.Hide();
+    }
+
+    private async Task DeleteEmployee(int employeeId)
+    {
+        await employeeRepository.Delete(employeeId);
+        employees = await employeeRepository.GetAsList();
+    }
+
+    private async Task ConfirmDeleteSelectedEmployees()
+    {
+        foreach (var employee in _selectedEmployees.ToList())
+        {
+            await employeeRepository.Delete(employee.EmployeeId);
+        }
+        _selectedEmployees.Clear();
+        employees = await employeeRepository.GetAsList();
+    }
+
+    private async Task CancelClicked()
+    {
+        await addEmployeeModal.Hide();
+    }
+}

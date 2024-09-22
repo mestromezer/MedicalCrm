@@ -3,9 +3,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MedicalCrmLib;
 
-public abstract class CrmDbContext : DbContext
+public class CrmDbContext : DbContext
 {
-    private const string ConnectionString = "Server=localhost; User ID=root; Password=1; Database=mydb";
+    public CrmDbContext(DbContextOptions<CrmDbContext> options) : base(options)
+    {
+    }
 
     // DbSet для всех таблиц базы данных
     public DbSet<Account> Accounts { get; set; }
@@ -23,12 +25,6 @@ public abstract class CrmDbContext : DbContext
     public DbSet<Employee> Employees { get; set; }
     public DbSet<ServiceList> ServiceListRecords { get; set; }
     public DbSet<OrderService> OrderServices { get; set; }
-
-    // Настройка подключения к базе данных
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    {
-        optionsBuilder.UseMySql(ConnectionString, ServerVersion.AutoDetect(ConnectionString));
-    }
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

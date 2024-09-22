@@ -1,17 +1,17 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace MedicalCrmLib.Model;
 
+[PrimaryKey(nameof(RoomNumber), nameof(CleaningDate))]
 [Table("График_уборки", Schema = "mydb")]
 public class CleaningSchedule
 {
-    [Key]
     [Column("Номер_кабинета", Order = 0)]
     [Required]
     public int RoomNumber { get; set; }  // Primary Key - часть составного ключа
 
-    [Key]
     [Column("Дата_проведения_уборки", Order = 1)]
     [Required]
     public DateTime CleaningDate { get; set; }  // Primary Key - часть составного ключа

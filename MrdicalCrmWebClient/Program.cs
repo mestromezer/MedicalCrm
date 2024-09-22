@@ -7,6 +7,7 @@ using MedicalCrmLib.Model;
 using MedicalCrmLib.Repositories;
 using Microsoft.EntityFrameworkCore;
 using MrdicalCrmWebClient.Components;
+using MrdicalCrmWebClient.Srvices;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,7 +15,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-builder.Services.AddDbContext<CrmDbContext>();
+var ConnectionString = "Server=localhost; User ID=root; Password=1; Database=mydb";
+
+builder.Services.AddDbContext<CrmDbContext>(options =>
+    options.UseMySql(ConnectionString, ServerVersion.AutoDetect(ConnectionString)));
 
 builder.Services.AddTransient<IRepository<Account, string>, AccountRepository>();
 builder.Services.AddTransient<IRepository<Analysis, int>, AnalysisRepository>();
@@ -30,6 +34,8 @@ builder.Services.AddTransient<IRepository<Order, int>, OrderRepository>();
 builder.Services.AddTransient<IRepository<OrderService, int>, OrderServiceRepository>();
 builder.Services.AddTransient<IRepository<ProtectiveEquipmentJournal, (string EquipmentName, int EmployeeId)>, ProtectiveEquipmentJournalRepository>();
 builder.Services.AddTransient<IRepository<Service, int>, ServiceRepository>();
+
+builder.Services.AddTransient<IAuthenticationService, AuthenticationService>();
 
 builder.Services
     .AddBlazorise(options =>

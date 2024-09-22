@@ -1,17 +1,17 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace MedicalCrmLib.Model;
 
+[PrimaryKey(nameof(JournalId), nameof(Date))]
 [Table("Журнал", Schema = "mydb")]
 public class Journal
 {
-    [Key]
     [Column("ID_Журнала", Order = 0)]
     [Required]
     public int JournalId { get; set; }  // Primary Key - часть составного ключа
 
-    [Key]
     [Column("Дата", Order = 1)]
     [Required]
     public DateTime Date { get; set; }  // Primary Key - часть составного ключа

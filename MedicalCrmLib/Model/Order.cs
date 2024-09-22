@@ -1,6 +1,7 @@
-using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+
+namespace MedicalCrmLib.Model;
 
 [Table("Заказ", Schema = "mydb")]
 public class Order

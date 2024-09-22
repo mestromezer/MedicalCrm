@@ -1,0 +1,111 @@
+@page "/account"
+
+@inject NavigationManager Navigation
+@inject IAuthenticationService authenticationService
+
+@using Blazorise
+@using MedicalCrmLib.Interfaces
+
+<Row>
+    <!-- Форма регистрации -->
+    <Column ColumnSize="ColumnSize.Is6">
+        <Card>
+            <CardHeader>
+                <h4>Регистрация</h4>
+            </CardHeader>
+            <CardBody>
+                <div class="mb-3">
+                    <label for="registerUsername">Логин:</label>
+                    <input type="text" id="registerUsername" @bind="newAccount.Login" class="form-control"/>
+                </div>
+                <div class="mb-3">
+                    <label for="registerPassword">Пароль:</label>
+                    <input type="password" id="registerPassword" @bind="newAccount.Password" class="form-control"/>
+                </div>
+                <div class="mb-3">
+                    <label for="userRole">Должность пользователя:</label>
+                        <Select TItem="string" @bind-SelectedValue="newAccount.UserRole" Class="form-control">
+                            <SelectItem Value="@("Заведующий лабораторией")">Заведующий лабораторией</SelectItem>
+                            <SelectItem Value="@("Старший фельдшер-лаборант")">Старший фельдшер-лаборант</SelectItem>
+                            <SelectItem Value="@("Фельдшер-лаборант")">Фельдшер-лаборант</SelectItem>
+                            <SelectItem Value="@("Сотрудник регистратуры")">Сотрудник регистратуры</SelectItem>
+                        </Select>
+                </div>
+                <Button Color="Color.Primary" Clicked="Register">Создать аккаунт</Button>
+            </CardBody>
+        </Card>
+    </Column>
+
+    <!-- Форма логина -->
+    <Column ColumnSize="ColumnSize.Is6">
+        <Card>
+            <CardHeader>
+                <h4>Вход</h4>
+            </CardHeader>
+            <CardBody>
+                <div class="mb-3">
+                    <label for="loginUsername">Логин:</label>
+                    <input type="text" id="loginUsername" @bind="loginModel.Login" class="form-control"/>
+                </div>
+                <div class="mb-3">
+                    <label for="loginPassword">Пароль:</label>
+                    <input type="password" id="loginPassword" @bind="loginModel.Password" class="form-control"/>
+                </div>
+                <Button Color="Color.Primary" Clicked="Login">Войти</Button>
+            </CardBody>
+        </Card>
+    </Column>
+</Row>
+
+<Alert @ref="loginAlert" Color="Color.Danger" Visible="false">
+    Неправильное имя пользователя или пароль.
+</Alert>
+
+<Alert @ref="registrationAlert" Color="Color.Danger" Visible="false">
+    Ошибка при создании аккаунта. Попробуйте снова.
+</Alert>
+
+@code {
+
+// Модель для регистрации нового пользователя
+    private Account newAccount = new Account();
+
+// Модель для логина
+    private Account loginModel = new Account();
+
+    private Alert? loginAlert;
+    private Alert? registrationAlert;
+
+    private async Task Register()
+    {
+        bool isRegistered = await authenticationService.RegisterAsync(newAccount);
+
+        if (isRegistered)
+        {
+// Если регистрация успешна, перенаправляем пользователя на страницу входа
+            Navigation.NavigateTo("/profile");
+        }
+        else
+        {
+// Показать сообщение об ошибке регистрации
+            await registrationAlert!.Show();
+        }
+    }
+
+    private async Task Login()
+    {
+        bool isLoggedIn = await authenticationService.LoginAsync(loginModel.Login, loginModel.Password);
+
+        if (isLoggedIn)
+        {
+// Если логин успешен, перенаправляем пользователя на страницу профиля
+            Navigation.NavigateTo("/profile");
+        }
+        else
+        {
+// Показать сообщение об ошибке входа
+            await loginAlert!.Show();
+        }
+    }
+
+}

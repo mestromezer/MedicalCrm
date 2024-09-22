@@ -1,0 +1,180 @@
+@page "/clients"
+
+@rendermode InteractiveServer
+
+@inject IRepository<Client, int> clientRepository;
+
+@using Blazorise.DataGrid
+@using Blazorise
+@using MedicalCrmLib.Interfaces
+
+<Card>
+    <CardHeader>
+        <Row Class="justify-content-between">
+            <Column ColumnSize="ColumnSize.IsAuto">
+                <h4>Клиенты</h4>
+            </Column>
+            <Column ColumnSize="ColumnSize.IsAuto">
+                <Button Color="Color.Primary" Clicked="ShowAddClientModal">
+                    Добавить клиента
+                </Button>
+                <Button Color="Color.Danger" Disabled="@(_selectedClients.Count == 0)"
+                        Clicked="ConfirmDeleteSelectedClients">
+                    Удалить выбранное
+                </Button>
+            </Column>
+        </Row>
+    </CardHeader>
+    <CardBody>
+        <DataGrid TItem="Client"
+                  Data="@clients"
+                  SelectionMode="DataGridSelectionMode.Multiple"
+                  @bind-SelectedRows="_selectedClients"
+                  ShowPager="true"
+                  PageSize="@GridPageSize"
+                  Responsive Striped>
+            <DataGridColumns>
+                <DataGridMultiSelectColumn TItem="Client" Width="30px" />
+
+                <DataGridColumn TItem="Client"
+                                Field="@nameof(Client.ClientId)"
+                                Caption="ID клиента" />
+
+                <DataGridColumn TItem="Client"
+                                Field="@nameof(Client.FullName)"
+                                Caption="ФИО" />
+
+                <DataGridColumn TItem="Client"
+                                Field="@nameof(Client.ContactNumber)"
+                                Caption="Контактный номер" />
+
+                <DataGridColumn TItem="Client"
+                                Field="@nameof(Client.Email)"
+                                Caption="Электронная почта" />
+
+                <DataGridColumn TItem="Client"
+                                Field="@nameof(Client.Address)"
+                                Caption="Адрес" />
+
+                <DataGridColumn TItem="Client"
+                                Field="@nameof(Client.BirthDate)"
+                                Caption="Дата рождения" />
+
+                <DataGridColumn TItem="Client"
+                                Field="@nameof(Client.Gender)"
+                                Caption="Пол" />
+
+                <DataGridColumn TItem="Client"
+                                Field="@nameof(Client.CompanyName)"
+                                Caption="Название фирмы" />
+
+                <DataGridCommandColumn TItem="Client" Width="150px">
+                    <DisplayTemplate>
+                        <Button Color="Color.Danger" Clicked="@(() => DeleteClient(context.ClientId))">
+                            Удалить
+                        </Button>
+                    </DisplayTemplate>
+                </DataGridCommandColumn>
+            </DataGridColumns>
+
+            <LoadingTemplate>
+                <p>Загрузка...</p>
+            </LoadingTemplate>
+
+            <EmptyTemplate>
+                <p>Нет записей.</p>
+            </EmptyTemplate>
+        </DataGrid>
+    </CardBody>
+</Card>
+
+<Modal @ref="addClientModal" Size="ModalSize.Small" ShowCloseIcon="true" Style="background-color: white;">
+    <ModalHeader>
+        <h5>Добавить клиента</h5>
+    </ModalHeader>
+    <ModalBody>
+        <div class="mb-3">
+            <label for="fullName">ФИО:</label>
+            <input type="text" id="fullName" @bind="newClient.FullName" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label for="contactNumber">Контактный номер:</label>
+            <input type="text" id="contactNumber" @bind="newClient.ContactNumber" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label for="email">Электронная почта:</label>
+            <input type="email" id="email" @bind="newClient.Email" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label for="address">Адрес:</label>
+            <input type="text" id="address" @bind="newClient.Address" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label for="birthDate">Дата рождения:</label>
+            <input type="date" id="birthDate" @bind="newClient.BirthDate" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label for="gender">Пол:</label>
+            <input type="text" id="gender" @bind="newClient.Gender" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label for="companyName">Название фирмы:</label>
+            <input type="text" id="companyName" @bind="newClient.CompanyName" class="form-control" />
+        </div>
+    </ModalBody>
+    <ModalFooter>
+        <Button Color="Color.Primary" Clicked="AddNewClient">
+            Добавить
+        </Button>
+        <Button Color="Color.Secondary" Clicked="CancelClicked">
+            Отмена
+        </Button>
+    </ModalFooter>
+</Modal>
+
+@code {
+    private List<Client> clients = new();
+    private Client newClient = new();
+    private List<Client> _selectedClients = new();
+    private Modal? addClientModal = null!;
+    private int GridPageSize = 5;
+
+    protected override async Task OnInitializedAsync()
+    {
+        clients = await clientRepository.GetAsList();
+    }
+
+    private async Task ShowAddClientModal()
+    {
+        newClient = new Client();  // Создаем новый объект Client без задания ClientId
+        await addClientModal!.Show();
+    }
+
+    private async Task AddNewClient()
+    {
+        await clientRepository.Add(newClient);  // ClientId не задается вручную
+        clients = await clientRepository.GetAsList();
+        await addClientModal.Hide();
+    }
+
+    private async Task DeleteClient(int clientId)
+    {
+        await clientRepository.Delete(clientId);
+        clients = await clientRepository.GetAsList();
+    }
+
+    private async Task ConfirmDeleteSelectedClients()
+    {
+        foreach (var client in _selectedClients.ToList())
+        {
+            await clientRepository.Delete(client.ClientId);
+        }
+        _selectedClients.Clear();
+        clients = await clientRepository.GetAsList();
+    }
+
+    private async Task CancelClicked()
+    {
+        await addClientModal.Hide();
+    }
+}

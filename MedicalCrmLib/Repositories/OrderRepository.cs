@@ -1,6 +1,7 @@
 using MedicalCrmLib;
 using Microsoft.EntityFrameworkCore;
 using MedicalCrmLib.Interfaces;
+using MedicalCrmLib.Model;
 
 public class OrderRepository : IRepository<Order, int>
 {
