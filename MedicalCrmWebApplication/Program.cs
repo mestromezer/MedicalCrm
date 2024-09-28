@@ -5,9 +5,8 @@ using MedicalCrmLib;
 using MedicalCrmLib.Interfaces;
 using MedicalCrmLib.Model;
 using MedicalCrmLib.Repositories;
+using MedicalCrmWebApplication.Components;
 using Microsoft.EntityFrameworkCore;
-using MedicalCrmWebClient.Components;
-using MedicalCrmWebClient.Srvices;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -35,7 +34,6 @@ builder.Services.AddTransient<IRepository<OrderService, int>, OrderServiceReposi
 builder.Services.AddTransient<IRepository<ProtectiveEquipmentJournal, (string EquipmentName, int EmployeeId)>, ProtectiveEquipmentJournalRepository>();
 builder.Services.AddTransient<IRepository<Service, int>, ServiceRepository>();
 
-builder.Services.AddTransient<IAuthenticationService, AuthenticationService>();
 
 builder.Services
     .AddBlazorise(options =>

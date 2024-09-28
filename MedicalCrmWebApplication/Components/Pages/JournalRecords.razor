@@ -1,0 +1,224 @@
+@page "/journal-records"
+
+@rendermode InteractiveServer
+
+@inject IRepository<Journal, (int JournalId, DateTime Date)> journalRepository;
+@using MedicalCrmLib.Interfaces
+
+<Card>
+    <CardHeader>
+        <Row Class="justify-content-between">
+            <Column ColumnSize="ColumnSize.IsAuto">
+                <h4>Журнал записей</h4>
+            </Column>
+            <Column ColumnSize="ColumnSize.IsAuto">
+                <Button Color="Color.Primary" Clicked="ShowAddJournalModal">
+                    Добавить запись
+                </Button>
+                <Button Color="Color.Danger" Disabled="@(_selectedJournals.Count == 0)"
+                        Clicked="ConfirmDeleteSelectedJournals">
+                    Удалить выбранное
+                </Button>
+            </Column>
+        </Row>
+    </CardHeader>
+    <CardBody>
+        <DataGrid TItem="Journal"
+                  Data="@journals"
+                  SelectionMode="DataGridSelectionMode.Multiple"
+                  @bind-SelectedRows="_selectedJournals"
+                  ShowPager="true"
+                  PageSize="@GridPageSize"
+                  Responsive Striped>
+            <DataGridColumns>
+                <DataGridMultiSelectColumn TItem="Journal" Width="30px" />
+
+                <DataGridColumn TItem="Journal"
+                                Field="@nameof(Journal.JournalId)"
+                                Caption="ID Журнала" />
+
+                <DataGridColumn TItem="Journal"
+                                Field="@nameof(Journal.Date)"
+                                Caption="Дата" />
+
+                <DataGridColumn TItem="Journal"
+                                Field="@nameof(Journal.EmployeeId)"
+                                Caption="ID Сотрудника" />
+
+                <DataGridColumn TItem="Journal"
+                                Field="@nameof(Journal.RoomNumber)"
+                                Caption="Номер кабинета" />
+
+                <DataGridColumn TItem="Journal"
+                                Field="@nameof(Journal.ManufactureDate)"
+                                Caption="Дата изготовления" />
+
+                <DataGridColumn TItem="Journal"
+                                Field="@nameof(Journal.ExpiryDate)"
+                                Caption="Срок использования" />
+
+                <DataGridCommandColumn TItem="Journal" Width="150px">
+                    <DisplayTemplate>
+                        <Button Color="Color.Primary" Clicked="@(() => ShowEditJournalModal(context))">
+                            Редактировать
+                        </Button>
+                        <Button Color="Color.Danger" Clicked="@(() => DeleteJournal((context.JournalId, context.Date)))">
+                            Удалить
+                        </Button>
+                    </DisplayTemplate>
+                </DataGridCommandColumn>
+            </DataGridColumns>
+
+            <LoadingTemplate>
+                <p>Загрузка...</p>
+            </LoadingTemplate>
+
+            <EmptyTemplate>
+                <p>Нет записей.</p>
+            </EmptyTemplate>
+        </DataGrid>
+
+        @if (!string.IsNullOrEmpty(ErrorMessage))
+        {
+            <Alert Color="Color.Danger" IsDismissible="true" OnDismissed="@(() => ErrorMessage = null)">
+                @ErrorMessage
+            </Alert>
+        }
+    </CardBody>
+</Card>
+
+<Modal @ref="addJournalModal" Size="ModalSize.Small" ShowCloseIcon="true" Style="background-color: white;">
+    <ModalHeader>
+        <h5>@(isEditMode ? "Редактировать запись" : "Добавить запись")</h5>
+    </ModalHeader>
+    <ModalBody>
+        <div class="mb-3">
+            <label for="journalId">ID Журнала:</label>
+            <input type="number" id="journalId" @bind="newJournal.JournalId" class="form-control" disabled="@isEditMode" />
+        </div>
+        <div class="mb-3">
+            <label for="date">Дата:</label>
+            <input type="date" id="date" @bind="newJournal.Date" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label for="employeeId">ID Сотрудника:</label>
+            <input type="number" id="employeeId" @bind="newJournal.EmployeeId" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label for="roomNumber">Номер кабинета:</label>
+            <input type="number" id="roomNumber" @bind="newJournal.RoomNumber" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label for="manufactureDate">Дата изготовления:</label>
+            <input type="date" id="manufactureDate" @bind="newJournal.ManufactureDate" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label for="expiryDate">Срок использования:</label>
+            <input type="date" id="expiryDate" @bind="newJournal.ExpiryDate" class="form-control" />
+        </div>
+    </ModalBody>
+    <ModalFooter>
+        <Button Color="Color.Primary" Clicked="@(isEditMode ? UpdateJournal : AddNewJournal)">
+            @(isEditMode ? "Сохранить" : "Добавить")
+        </Button>
+        <Button Color="Color.Secondary" Clicked="CancelClicked">
+            Отмена
+        </Button>
+    </ModalFooter>
+</Modal>
+
+@code {
+    private List<Journal> journals = new();
+    private Journal newJournal = new();
+    private List<Journal> _selectedJournals = new();
+    private Modal? addJournalModal = null!;
+    private int GridPageSize = 5;
+    private string? ErrorMessage;
+    private bool isEditMode = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadJournals();
+    }
+
+    private async Task LoadJournals()
+    {
+        try
+        {
+            journals = await journalRepository.GetAsList();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = "Ошибка загрузки журнала: " + ex.Message;
+        }
+    }
+
+    private async Task ShowAddJournalModal()
+    {
+        newJournal = new Journal();
+        isEditMode = false;
+        await addJournalModal!.Show();
+    }
+
+    private async Task ShowEditJournalModal(Journal journal)
+    {
+        newJournal = journal;
+        isEditMode = true;
+        await addJournalModal!.Show();
+    }
+
+    private async Task AddNewJournal()
+    {
+        try
+        {
+            await journalRepository.Add(newJournal);
+            await LoadJournals();
+            await addJournalModal.Hide();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = "Ошибка при добавлении записи: " + ex.Message;
+        }
+    }
+
+    private async Task UpdateJournal()
+    {
+        try
+        {
+            await journalRepository.Update(newJournal);
+            await LoadJournals();
+            await addJournalModal.Hide();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = "Ошибка при обновлении записи: " + ex.Message;
+        }
+    }
+
+    private async Task DeleteJournal((int JournalId, DateTime Date) key)
+    {
+        try
+        {
+            await journalRepository.Delete(key);
+            await LoadJournals();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = "Ошибка при удалении записи: " + ex.Message;
+        }
+    }
+
+    private async Task ConfirmDeleteSelectedJournals()
+    {
+        foreach (var journal in _selectedJournals.ToList())
+        {
+            await DeleteJournal((journal.JournalId, journal.Date));
+        }
+        _selectedJournals.Clear();
+    }
+
+    private async Task CancelClicked()
+    {
+        await addJournalModal.Hide();
+    }
+}

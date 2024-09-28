@@ -10,22 +10,22 @@ public class Journal
 {
     [Column("ID_Журнала", Order = 0)]
     [Required]
-    public int JournalId { get; set; }  // Primary Key - часть составного ключа
+    public int JournalId { get; set; }
 
     [Column("Дата", Order = 1)]
     [Required]
-    public DateTime Date { get; set; }  // Primary Key - часть составного ключа
+    public DateTime Date { get; set; } 
 
     [Column("Сотрудник_ID_Сотрудника")]
     [Required]
-    public int EmployeeId { get; set; }  // Внешний ключ на таблицу Сотрудник
+    public int EmployeeId { get; set; }
 
     [Column("Номер_кабинета")]
-    public int? RoomNumber { get; set; }  // Номер кабинета
+    public int? RoomNumber { get; set; }
 
     [Column("Дата_изготовления")]
-    public DateTime? ManufactureDate { get; set; }  // Дата изготовления
+    public DateTime? ManufactureDate { get; set; }
 
     [Column("Срок_использования")]
-    public DateTime? ExpiryDate { get; set; }  // Срок использования
+    public DateTime? ExpiryDate { get; set; }
 }

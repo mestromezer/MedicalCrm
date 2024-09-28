@@ -1,0 +1,208 @@
+@page "/contracts"
+
+@rendermode InteractiveServer
+
+@inject IRepository<Contract, int> contractRepository;
+@using MedicalCrmLib.Interfaces
+
+<Card>
+    <CardHeader>
+        <Row Class="justify-content-between">
+            <Column ColumnSize="ColumnSize.IsAuto">
+                <h4>Договоры</h4>
+            </Column>
+            <Column ColumnSize="ColumnSize.IsAuto">
+                <Button Color="Color.Primary" Clicked="ShowAddContractModal">
+                    Добавить договор
+                </Button>
+                <Button Color="Color.Danger" Disabled="@(_selectedContracts.Count == 0)"
+                        Clicked="ConfirmDeleteSelectedContracts">
+                    Удалить выбранное
+                </Button>
+            </Column>
+        </Row>
+    </CardHeader>
+    <CardBody>
+        <DataGrid TItem="Contract"
+                  Data="@contracts"
+                  SelectionMode="DataGridSelectionMode.Multiple"
+                  @bind-SelectedRows="_selectedContracts"
+                  ShowPager="true"
+                  PageSize="@GridPageSize"
+                  Responsive Striped>
+            <DataGridColumns>
+                <DataGridMultiSelectColumn TItem="Contract" Width="30px" />
+
+                <DataGridColumn TItem="Contract"
+                                Field="@nameof(Contract.ContractNumber)"
+                                Caption="Номер договора" />
+
+                <DataGridColumn TItem="Contract"
+                                Field="@nameof(Contract.ContractDate)"
+                                Caption="Дата заключения" />
+
+                <DataGridColumn TItem="Contract"
+                                Field="@nameof(Contract.LaboratoryName)"
+                                Caption="Название лаборатории" />
+
+                <DataGridColumn TItem="Contract"
+                                Field="@nameof(Contract.ClientId)"
+                                Caption="ID клиента" />
+
+                <DataGridCommandColumn TItem="Contract" Width="150px">
+                    <DisplayTemplate>
+                        <Button Color="Color.Primary" Clicked="@(() => ShowEditContractModal(context))">
+                            Редактировать
+                        </Button>
+                        <Button Color="Color.Danger" Clicked="@(() => DeleteContract(context.ContractNumber))">
+                            Удалить
+                        </Button>
+                    </DisplayTemplate>
+                </DataGridCommandColumn>
+            </DataGridColumns>
+
+            <LoadingTemplate>
+                <p>Загрузка...</p>
+            </LoadingTemplate>
+
+            <EmptyTemplate>
+                <p>Нет записей.</p>
+            </EmptyTemplate>
+        </DataGrid>
+
+        @if (!string.IsNullOrEmpty(ErrorMessage))
+        {
+            <Alert Color="Color.Danger" IsDismissible="true" OnDismissed="@(() => ErrorMessage = null)">
+                @ErrorMessage
+            </Alert>
+        }
+    </CardBody>
+</Card>
+
+<Modal @ref="addContractModal" Size="ModalSize.Small" ShowCloseIcon="true" Style="background-color: white;">
+    <ModalHeader>
+        <h5>@(isEditMode ? "Редактировать договор" : "Добавить договор")</h5>
+    </ModalHeader>
+    <ModalBody>
+        <div class="mb-3">
+            <label for="contractNumber">Номер договора:</label>
+            <input type="number" id="contractNumber" @bind="newContract.ContractNumber" class="form-control" disabled="@isEditMode" />
+        </div>
+        <div class="mb-3">
+            <label for="contractDate">Дата заключения:</label>
+            <input type="date" id="contractDate" @bind="newContract.ContractDate" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label for="laboratoryName">Название лаборатории:</label>
+            <input type="text" id="laboratoryName" @bind="newContract.LaboratoryName" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label for="clientId">ID клиента:</label>
+            <input type="number" id="clientId" @bind="newContract.ClientId" class="form-control" />
+        </div>
+    </ModalBody>
+    <ModalFooter>
+        <Button Color="Color.Primary" Clicked="@(isEditMode ? UpdateContract : AddNewContract)">
+            @(isEditMode ? "Сохранить" : "Добавить")
+        </Button>
+        <Button Color="Color.Secondary" Clicked="CancelClicked">
+            Отмена
+        </Button>
+    </ModalFooter>
+</Modal>
+
+@code {
+    private List<Contract> contracts = new();
+    private Contract newContract = new();
+    private List<Contract> _selectedContracts = new();
+    private Modal? addContractModal = null!;
+    private int GridPageSize = 5;
+    private string? ErrorMessage;
+    private bool isEditMode = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadContracts();
+    }
+
+    private async Task LoadContracts()
+    {
+        try
+        {
+            contracts = await contractRepository.GetAsList();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = "Ошибка загрузки договоров: " + ex.Message;
+        }
+    }
+
+    private async Task ShowAddContractModal()
+    {
+        newContract = new Contract();
+        isEditMode = false;
+        await addContractModal!.Show();
+    }
+
+    private async Task ShowEditContractModal(Contract contract)
+    {
+        newContract = contract;
+        isEditMode = true;
+        await addContractModal!.Show();
+    }
+
+    private async Task AddNewContract()
+    {
+        try
+        {
+            await contractRepository.Add(newContract);
+            await LoadContracts();
+            await addContractModal.Hide();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = "Ошибка при добавлении договора: " + ex.Message;
+        }
+    }
+
+    private async Task UpdateContract()
+    {
+        try
+        {
+            await contractRepository.Update(newContract);
+            await LoadContracts();
+            await addContractModal.Hide();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = "Ошибка при обновлении договора: " + ex.Message;
+        }
+    }
+
+    private async Task DeleteContract(int contractNumber)
+    {
+        try
+        {
+            await contractRepository.Delete(contractNumber);
+            await LoadContracts();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = "Ошибка при удалении договора: " + ex.Message;
+        }
+    }
+
+    private async Task ConfirmDeleteSelectedContracts()
+    {
+        foreach (var contract in _selectedContracts.ToList())
+        {
+            await DeleteContract(contract.ContractNumber);
+        }
+        _selectedContracts.Clear();
+    }
+
+    private async Task CancelClicked()
+    {
+        await addContractModal.Hide();
+    }
+}
