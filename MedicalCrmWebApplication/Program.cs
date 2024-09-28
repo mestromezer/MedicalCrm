@@ -32,7 +32,7 @@ builder.Services.AddTransient<IRepository<MeasuredSubstance, int>, MeasuredSubst
 builder.Services.AddTransient<IRepository<Order, int>, OrderRepository>();
 builder.Services.AddTransient<IRepository<OrderService, int>, OrderServiceRepository>();
 builder.Services.AddTransient<IRepository<ProtectiveEquipmentJournal, (string EquipmentName, int EmployeeId)>, ProtectiveEquipmentJournalRepository>();
-builder.Services.AddTransient<IRepository<Service, int>, ServiceRepository>();
+builder.Services.AddTransient<IRepository<ServiceList, int>, ServiceListRepository>();
 
 
 builder.Services

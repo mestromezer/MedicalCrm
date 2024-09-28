@@ -12,7 +12,6 @@ public class CrmDbContext : DbContext
     // DbSet для всех таблиц базы данных
     public DbSet<Account> Accounts { get; set; }
     public DbSet<Analysis> Analyses { get; set; }
-    public DbSet<Service> Services { get; set; }
     public DbSet<Order> Orders { get; set; }
     public DbSet<CleaningSchedule> CleaningSchedules { get; set; }
     public DbSet<Contract> Contracts { get; set; }

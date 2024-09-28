@@ -1,0 +1,147 @@
+@page "/protective-equipment-journal-records"
+@rendermode InteractiveServer
+
+@inject IRepository<ProtectiveEquipmentJournal, (string EquipmentName, int EmployeeId)> protectiveEquipmentJournalRepository;
+
+<Card>
+    <CardHeader>
+        <Row Class="justify-content-between">
+            <Column ColumnSize="ColumnSize.IsAuto">
+                <h4>Журнал СИЗ</h4>
+            </Column>
+            <Column ColumnSize="ColumnSize.IsAuto">
+                <Button Color="Color.Primary" Clicked="ShowAddProtectiveEquipmentModal">
+                    Добавить запись
+                </Button>
+                <Button Color="Color.Danger" Disabled="@(_selectedJournals.Count == 0)"
+                        Clicked="ConfirmDeleteSelectedJournals">
+                    Удалить выбранные
+                </Button>
+            </Column>
+        </Row>
+    </CardHeader>
+    <CardBody>
+        <DataGrid TItem="ProtectiveEquipmentJournal"
+                  Data="@journals"
+                  SelectionMode="DataGridSelectionMode.Multiple"
+                  @bind-SelectedRows="_selectedJournals"
+                  ShowPager="true"
+                  PageSize="@GridPageSize"
+                  Responsive Striped>
+            <DataGridColumns>
+                <DataGridMultiSelectColumn TItem="ProtectiveEquipmentJournal" Width="30px" />
+
+                <DataGridColumn TItem="ProtectiveEquipmentJournal"
+                                Field="@nameof(ProtectiveEquipmentJournal.EquipmentName)"
+                                Caption="Наименование СИЗ" />
+
+                <DataGridColumn TItem="ProtectiveEquipmentJournal"
+                                Field="@nameof(ProtectiveEquipmentJournal.EquipmentCount)"
+                                Caption="Количество СИЗов" />
+
+                <DataGridColumn TItem="ProtectiveEquipmentJournal"
+                                Field="@nameof(ProtectiveEquipmentJournal.EmployeeId)"
+                                Caption="ID сотрудника" />
+
+                <DataGridColumn TItem="ProtectiveEquipmentJournal"
+                                Field="@nameof(ProtectiveEquipmentJournal.RequiredEquipmentCount)"
+                                Caption="Необходимое количество СИЗов" />
+
+                <DataGridCommandColumn TItem="ProtectiveEquipmentJournal" Width="150px">
+                    <DisplayTemplate>
+                        <Button Color="Color.Danger" Clicked="@(() => DeleteJournalEntry((context.EquipmentName, context.EmployeeId)))">
+                            Удалить
+                        </Button>
+                    </DisplayTemplate>
+                </DataGridCommandColumn>
+            </DataGridColumns>
+
+            <LoadingTemplate>
+                <p>Загрузка...</p>
+            </LoadingTemplate>
+
+            <EmptyTemplate>
+                <p>Нет записей.</p>
+            </EmptyTemplate>
+        </DataGrid>
+    </CardBody>
+</Card>
+
+<Modal @ref="addProtectiveEquipmentModal" Size="ModalSize.Small" ShowCloseIcon="true" Style="background-color: white;">
+    <ModalHeader>
+        <h5>Добавить запись о СИЗ</h5>
+    </ModalHeader>
+    <ModalBody>
+        <div class="mb-3">
+            <label for="equipmentName">Наименование СИЗ:</label>
+            <input type="text" id="equipmentName" @bind="newJournalEntry.EquipmentName" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label for="equipmentCount">Количество СИЗов:</label>
+            <input type="number" id="equipmentCount" @bind="newJournalEntry.EquipmentCount" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label for="employeeId">ID сотрудника:</label>
+            <input type="number" id="employeeId" @bind="newJournalEntry.EmployeeId" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label for="requiredEquipmentCount">Необходимое количество СИЗов:</label>
+            <input type="number" id="requiredEquipmentCount" @bind="newJournalEntry.RequiredEquipmentCount" class="form-control" />
+        </div>
+    </ModalBody>
+    <ModalFooter>
+        <Button Color="Color.Primary" Clicked="AddNewJournalEntry">
+            Добавить
+        </Button>
+        <Button Color="Color.Secondary" Clicked="CancelClicked">
+            Отмена
+        </Button>
+    </ModalFooter>
+</Modal>
+
+@code {
+    private List<ProtectiveEquipmentJournal> journals = new();
+    private ProtectiveEquipmentJournal newJournalEntry = new();
+    private List<ProtectiveEquipmentJournal> _selectedJournals = new();
+    private Modal? addProtectiveEquipmentModal = null!;
+    private int GridPageSize = 5;
+
+    protected override async Task OnInitializedAsync()
+    {
+        journals = await protectiveEquipmentJournalRepository.GetAsList();
+    }
+
+    private async Task ShowAddProtectiveEquipmentModal()
+    {
+        newJournalEntry = new ProtectiveEquipmentJournal();
+        await addProtectiveEquipmentModal!.Show();
+    }
+
+    private async Task AddNewJournalEntry()
+    {
+        await protectiveEquipmentJournalRepository.Add(newJournalEntry);
+        journals = await protectiveEquipmentJournalRepository.GetAsList();
+        await addProtectiveEquipmentModal.Hide();
+    }
+
+    private async Task DeleteJournalEntry((string EquipmentName, int EmployeeId) key)
+    {
+        await protectiveEquipmentJournalRepository.Delete(key);
+        journals = await protectiveEquipmentJournalRepository.GetAsList();
+    }
+
+    private async Task ConfirmDeleteSelectedJournals()
+    {
+        foreach (var journal in _selectedJournals.ToList())
+        {
+            await protectiveEquipmentJournalRepository.Delete((journal.EquipmentName, journal.EmployeeId));
+        }
+        _selectedJournals.Clear();
+        journals = await protectiveEquipmentJournalRepository.GetAsList();
+    }
+
+    private async Task CancelClicked()
+    {
+        await addProtectiveEquipmentModal.Hide();
+    }
+}
