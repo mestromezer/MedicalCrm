@@ -4,50 +4,43 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MedicalCrmLib.Repositories;
 
-public class AccountRepository : IRepository<Account, string>
+public class AccountRepository(CrmDbContext context) : IRepository<Account, string>
 {
-    private readonly CrmDbContext _context;
-
-    public AccountRepository(CrmDbContext context)
-    {
-        _context = context;
-    }
-
     public async Task<List<Account>> GetAsList()
     {
-        return await _context.Accounts.ToListAsync();
+        return await context.Accounts.ToListAsync();
     }
 
     public async Task<List<Account>> GetAsList(Func<Account, bool> predicate)
     {
-        return await Task.FromResult(_context.Accounts.Where(predicate).ToList());
+        return await Task.FromResult(context.Accounts.Where(predicate).ToList());
     }
 
     public async Task Add(Account newRecord)
     {
-        await _context.Accounts.AddAsync(newRecord);
-        await _context.SaveChangesAsync();
+        await context.Accounts.AddAsync(newRecord);
+        await context.SaveChangesAsync();
     }
 
     public async Task Delete(string key)
     {
-        var account = await _context.Accounts.FindAsync(key);
+        var account = await context.Accounts.FindAsync(key);
         if (account != null)
         {
-            _context.Accounts.Remove(account);
-            await _context.SaveChangesAsync();
+            context.Accounts.Remove(account);
+            await context.SaveChangesAsync();
         }
     }
 
     public async Task Update(Account newValue)
     {
-        var account = await _context.Accounts.FindAsync(newValue.Login);
+        var account = await context.Accounts.FindAsync(newValue.Login);
         if (account != null)
         {
             account.Password = newValue.Password;
             account.UserRole = newValue.UserRole;
-            _context.Accounts.Update(account);
-            await _context.SaveChangesAsync();
+            context.Accounts.Update(account);
+            await context.SaveChangesAsync();
         }
     }
 }

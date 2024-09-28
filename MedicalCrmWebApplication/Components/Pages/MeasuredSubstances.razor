@@ -1,0 +1,161 @@
+@page "/measured-substances"
+
+@rendermode InteractiveServer
+
+@inject IRepository<MeasuredSubstance, int> measuredSubstanceRepository;
+@using MedicalCrmLib.Interfaces
+
+<Card>
+    <CardHeader>
+        <Row Class="justify-content-between">
+            <Column ColumnSize="ColumnSize.IsAuto">
+                <h4>Измеряемые вещества</h4>
+            </Column>
+            <Column ColumnSize="ColumnSize.IsAuto">
+                <Button Color="Color.Primary" Clicked="ShowAddMeasuredSubstanceModal">
+                    Добавить вещество
+                </Button>
+                <Button Color="Color.Danger" Disabled="@(_selectedMeasuredSubstances.Count == 0)"
+                        Clicked="ConfirmDeleteSelectedMeasuredSubstances">
+                    Удалить выбранное
+                </Button>
+            </Column>
+        </Row>
+    </CardHeader>
+    <CardBody>
+        <DataGrid TItem="MeasuredSubstance"
+                  Data="@measuredSubstances"
+                  SelectionMode="DataGridSelectionMode.Multiple"
+                  @bind-SelectedRows="_selectedMeasuredSubstances"
+                  ShowPager="true"
+                  PageSize="@GridPageSize"
+                  Responsive Striped>
+            <DataGridColumns>
+                <DataGridMultiSelectColumn TItem="MeasuredSubstance" Width="30px" />
+
+                <DataGridColumn TItem="MeasuredSubstance"
+                                Field="@nameof(MeasuredSubstance.MeasuredSubstanceId)"
+                                Caption="ID вещества" />
+
+                <DataGridColumn TItem="MeasuredSubstance"
+                                Field="@nameof(MeasuredSubstance.Name)"
+                                Caption="Название вещества" />
+
+                <DataGridColumn TItem="MeasuredSubstance"
+                                Field="@nameof(MeasuredSubstance.MeasurementUnit)"
+                                Caption="Единицы измерения" />
+
+                <DataGridColumn TItem="MeasuredSubstance"
+                                Field="@nameof(MeasuredSubstance.ReferenceValues)"
+                                Caption="Референсные значения" />
+
+                <DataGridColumn TItem="MeasuredSubstance"
+                                Field="@nameof(MeasuredSubstance.Age)"
+                                Caption="Возраст вещества" />
+
+                <DataGridColumn TItem="MeasuredSubstance"
+                                Field="@nameof(MeasuredSubstance.ServiceListId)"
+                                Caption="ID услуги" />
+
+                <DataGridCommandColumn TItem="MeasuredSubstance" Width="150px">
+                    <DisplayTemplate>
+                        <Button Color="Color.Danger" Clicked="@(() => DeleteMeasuredSubstance(context.MeasuredSubstanceId))">
+                            Удалить
+                        </Button>
+                    </DisplayTemplate>
+                </DataGridCommandColumn>
+            </DataGridColumns>
+
+            <LoadingTemplate>
+                <p>Загрузка...</p>
+            </LoadingTemplate>
+
+            <EmptyTemplate>
+                <p>Нет записей.</p>
+            </EmptyTemplate>
+        </DataGrid>
+    </CardBody>
+</Card>
+
+<Modal @ref="addMeasuredSubstanceModal" Size="ModalSize.Small" ShowCloseIcon="true" Style="background-color: white;">
+    <ModalHeader>
+        <h5>Добавить измеряемое вещество</h5>
+    </ModalHeader>
+    <ModalBody>
+        <div class="mb-3">
+            <label for="name">Название вещества:</label>
+            <input type="text" id="name" @bind="newMeasuredSubstance.Name" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label for="measurementUnit">Единицы измерения:</label>
+            <input type="text" id="measurementUnit" @bind="newMeasuredSubstance.MeasurementUnit" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label for="referenceValues">Референсные значения:</label>
+            <input type="number" id="referenceValues" @bind="newMeasuredSubstance.ReferenceValues" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label for="age">Возраст вещества:</label>
+            <input type="text" id="age" @bind="newMeasuredSubstance.Age" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label for="serviceListId">ID услуги:</label>
+            <input type="number" id="serviceListId" @bind="newMeasuredSubstance.ServiceListId" class="form-control" />
+        </div>
+    </ModalBody>
+    <ModalFooter>
+        <Button Color="Color.Primary" Clicked="AddNewMeasuredSubstance">
+            Добавить
+        </Button>
+        <Button Color="Color.Secondary" Clicked="CancelClicked">
+            Отмена
+        </Button>
+    </ModalFooter>
+</Modal>
+
+@code {
+    private List<MeasuredSubstance> measuredSubstances = new();
+    private MeasuredSubstance newMeasuredSubstance = new();
+    private List<MeasuredSubstance> _selectedMeasuredSubstances = new();
+    private Modal? addMeasuredSubstanceModal = null!;
+    private int GridPageSize = 5;
+
+    protected override async Task OnInitializedAsync()
+    {
+        measuredSubstances = await measuredSubstanceRepository.GetAsList();
+    }
+
+    private async Task ShowAddMeasuredSubstanceModal()
+    {
+        newMeasuredSubstance = new MeasuredSubstance();
+        await addMeasuredSubstanceModal!.Show();
+    }
+
+    private async Task AddNewMeasuredSubstance()
+    {
+        await measuredSubstanceRepository.Add(newMeasuredSubstance);
+        measuredSubstances = await measuredSubstanceRepository.GetAsList();
+        await addMeasuredSubstanceModal.Hide();
+    }
+
+    private async Task DeleteMeasuredSubstance(int measuredSubstanceId)
+    {
+        await measuredSubstanceRepository.Delete(measuredSubstanceId);
+        measuredSubstances = await measuredSubstanceRepository.GetAsList();
+    }
+
+    private async Task ConfirmDeleteSelectedMeasuredSubstances()
+    {
+        foreach (var substance in _selectedMeasuredSubstances.ToList())
+        {
+            await measuredSubstanceRepository.Delete(substance.MeasuredSubstanceId);
+        }
+        _selectedMeasuredSubstances.Clear();
+        measuredSubstances = await measuredSubstanceRepository.GetAsList();
+    }
+
+    private async Task CancelClicked()
+    {
+        await addMeasuredSubstanceModal.Hide();
+    }
+}

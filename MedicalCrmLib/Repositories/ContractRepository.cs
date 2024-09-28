@@ -6,13 +6,11 @@ namespace MedicalCrmLib.Repositories;
 
 public class ContractRepository(CrmDbContext context) : IRepository<Contract, int>
 {
-    // Получение всех записей Contract
     public async Task<List<Contract>> GetAsList()
     {
         return await context.Contracts.ToListAsync();
     }
 
-    // Получение записей Contract с фильтром
     public async Task<List<Contract>> GetAsList(Func<Contract, bool> predicate)
     {
         return await Task.FromResult(context.Contracts
@@ -20,14 +18,12 @@ public class ContractRepository(CrmDbContext context) : IRepository<Contract, in
             .ToList());
     }
 
-    // Добавление новой записи Contract
     public async Task Add(Contract newRecord)
     {
         await context.Contracts.AddAsync(newRecord);
         await context.SaveChangesAsync();
     }
 
-    // Удаление записи Contract по ключу (Номер_договора)
     public async Task Delete(int key)
     {
         var contract = await context.Contracts.FindAsync(key);
@@ -38,7 +34,6 @@ public class ContractRepository(CrmDbContext context) : IRepository<Contract, in
         }
     }
 
-    // Обновление существующей записи Contract
     public async Task Update(Contract newValue)
     {
         var contract = await context.Contracts.FindAsync(newValue.ContractNumber);

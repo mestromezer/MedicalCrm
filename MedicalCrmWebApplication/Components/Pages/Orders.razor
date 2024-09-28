@@ -2,9 +2,9 @@
 
 @rendermode InteractiveServer
 
+@inject IRepository<OrderRecord, int> orderRepository;
 @using MedicalCrmLib.Interfaces
-
-@inject IRepository<MedicalCrmLib.Model.Order, int> orderRepository;
+@using OrderRecord = MedicalCrmLib.Model.Order
 
 <Card>
     <CardHeader>
@@ -24,7 +24,7 @@
         </Row>
     </CardHeader>
     <CardBody>
-        <DataGrid TItem="MedicalCrmLib.Model.Order"
+        <DataGrid TItem=OrderRecord
                   Data="@orders"
                   SelectionMode="DataGridSelectionMode.Multiple"
                   @bind-SelectedRows="_selectedOrders"
@@ -32,33 +32,33 @@
                   PageSize="@GridPageSize"
                   Responsive Striped>
             <DataGridColumns>
-                <DataGridMultiSelectColumn TItem="MedicalCrmLib.Model.Order" Width="30px" />
+                <DataGridMultiSelectColumn TItem=OrderRecord Width="30px" />
 
-                <DataGridColumn TItem="MedicalCrmLib.Model.Order"
-                                Field="@nameof(MedicalCrmLib.Model.Order.OrderId)"
-                                Caption="ID заказа"></DataGridColumn>
+                <DataGridColumn TItem=OrderRecord
+                                Field="@nameof(OrderRecord.OrderId)"
+                                Caption="ID заказа" />
 
-                <DataGridColumn TItem="MedicalCrmLib.Model.Order"
-                                Field="@nameof(MedicalCrmLib.Model.Order.OrderDate)"
-                                Caption="Дата заказа"></DataGridColumn>
+                <DataGridColumn TItem=OrderRecord
+                                Field="@nameof(OrderRecord.OrderDate)"
+                                Caption="Дата заказа" />
 
-                <DataGridColumn TItem="MedicalCrmLib.Model.Order"
-                                Field="@nameof(MedicalCrmLib.Model.Order.OrderAmount)"
+                <DataGridColumn TItem=OrderRecord
+                                Field="@nameof(OrderRecord.OrderAmount)"
                                 Caption="Сумма заказа" />
 
-                <DataGridColumn TItem="MedicalCrmLib.Model.Order"
-                                Field="@nameof(MedicalCrmLib.Model.Order.ServiceCount)"
+                <DataGridColumn TItem=OrderRecord
+                                Field="@nameof(OrderRecord.ServiceCount)"
                                 Caption="Количество услуг" />
 
-                <DataGridColumn TItem="MedicalCrmLib.Model.Order"
-                                Field="@nameof(MedicalCrmLib.Model.Order.EmployeeId)"
+                <DataGridColumn TItem=OrderRecord
+                                Field="@nameof(OrderRecord.EmployeeId)"
                                 Caption="ID сотрудника" />
 
-                <DataGridColumn TItem="MedicalCrmLib.Model.Order"
-                                Field="@nameof(MedicalCrmLib.Model.Order.ClientId)"
+                <DataGridColumn TItem=OrderRecord
+                                Field="@nameof(OrderRecord.ClientId)"
                                 Caption="ID клиента" />
 
-                <DataGridCommandColumn TItem="MedicalCrmLib.Model.Order" Width="150px">
+                <DataGridCommandColumn TItem=OrderRecord Width="150px">
                     <DisplayTemplate>
                         <Button Color="Color.Danger" Clicked="@(() => DeleteOrder(context.OrderId))">
                             Удалить
@@ -85,23 +85,23 @@
     <ModalBody>
         <div class="mb-3">
             <label for="orderDate">Дата заказа:</label>
-            <input type="date" id="orderDate" @bind="newOrder.OrderDate" class="form-control" />
+            <input type="date" id="orderDate" @bind="newOrderRecord.OrderDate" class="form-control" />
         </div>
         <div class="mb-3">
             <label for="orderAmount">Сумма заказа:</label>
-            <input type="number" id="orderAmount" @bind="newOrder.OrderAmount" class="form-control" />
+            <input type="number" id="orderAmount" @bind="newOrderRecord.OrderAmount" class="form-control" />
         </div>
         <div class="mb-3">
             <label for="serviceCount">Количество услуг:</label>
-            <input type="number" id="serviceCount" @bind="newOrder.ServiceCount" class="form-control" />
+            <input type="number" id="serviceCount" @bind="newOrderRecord.ServiceCount" class="form-control" />
         </div>
         <div class="mb-3">
             <label for="employeeId">ID сотрудника:</label>
-            <input type="number" id="employeeId" @bind="newOrder.EmployeeId" class="form-control" />
+            <input type="number" id="employeeId" @bind="newOrderRecord.EmployeeId" class="form-control" />
         </div>
         <div class="mb-3">
             <label for="clientId">ID клиента:</label>
-            <input type="number" id="clientId" @bind="newOrder.ClientId" class="form-control" />
+            <input type="number" id="clientId" @bind="newOrderRecord.ClientId" class="form-control" />
         </div>
     </ModalBody>
     <ModalFooter>
@@ -115,9 +115,9 @@
 </Modal>
 
 @code {
-    private List<MedicalCrmLib.Model.Order> orders = new();
-    private MedicalCrmLib.Model.Order newOrder = new();
-    private List<MedicalCrmLib.Model.Order> _selectedOrders = new();
+    private List<OrderRecord> orders = new();
+    private OrderRecord newOrderRecord = new();
+    private List<OrderRecord> _selectedOrders = new();
     private Modal? addOrderModal = null!;
     private int GridPageSize = 5;
 
@@ -128,13 +128,13 @@
 
     private async Task ShowAddOrderModal()
     {
-        newOrder = new MedicalCrmLib.Model.Order();
+        newOrderRecord = new OrderRecord();
         await addOrderModal!.Show();
     }
 
     private async Task AddNewOrder()
     {
-        await orderRepository.Add(newOrder);
+        await orderRepository.Add(newOrderRecord);
         orders = await orderRepository.GetAsList();
         await addOrderModal.Hide();
     }

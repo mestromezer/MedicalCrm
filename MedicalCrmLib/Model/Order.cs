@@ -9,22 +9,22 @@ public class Order
     [Key]
     [Column("ID_Заказа")]
     [Required]
-    public int OrderId { get; set; }  // Primary Key
+    public int OrderId { get; set; } 
 
     [Column("Дата_заказа")]
-    public DateTime? OrderDate { get; set; }  // Дата заказа
+    public DateTime? OrderDate { get; set; }
 
     [Column("Сумма_заказа")]
-    public int? OrderAmount { get; set; }  // Сумма заказа
+    public int? OrderAmount { get; set; }
 
     [Column("Количество_услуг_в_заказе")]
-    public int? ServiceCount { get; set; }  // Количество услуг в заказе
+    public int? ServiceCount { get; set; }
 
     [Column("Сотрудник_ID")]
     [Required]
-    public int EmployeeId { get; set; }  // Внешний ключ на таблицу Сотрудник
+    public int EmployeeId { get; set; }
 
     [Column("Клиент_ID")]
     [Required]
-    public int ClientId { get; set; }  // Внешний ключ на таблицу Клиент
+    public int ClientId { get; set; }
 }
