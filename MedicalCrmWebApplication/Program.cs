@@ -14,10 +14,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-var ConnectionString = "Server=localhost; User ID=root; Password=1; Database=mydb";
+const string connectionString = "Server=localhost; User ID=root; Password=1; Database=mydb";
 
 builder.Services.AddDbContext<CrmDbContext>(options =>
-    options.UseMySql(ConnectionString, ServerVersion.AutoDetect(ConnectionString)));
+    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 
 builder.Services.AddTransient<IRepository<Account, string>, AccountRepository>();
 builder.Services.AddTransient<IRepository<Analysis, int>, AnalysisRepository>();

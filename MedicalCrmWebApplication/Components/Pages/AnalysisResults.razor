@@ -131,7 +131,7 @@
     {
         await analysisResultsRepository.Add(newAnalysisResult);
         analysisResults = await analysisResultsRepository.GetAsList();
-        await addAnalysisResultModal.Hide();
+        await addAnalysisResultModal!.Hide();
     }
 
     private async Task DeleteAnalysisResult(int measuredSubstanceId, int analysisCode, int employeeId)
@@ -153,7 +153,7 @@
 
     private async Task CancelClicked()
     {
-        await addAnalysisResultModal.Hide();
+        await addAnalysisResultModal!.Hide();
     }
 
 }
