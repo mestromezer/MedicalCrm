@@ -1,55 +1,66 @@
+// Для DbException
 using MedicalCrmLib.Interfaces;
 using MedicalCrmLib.Model;
 using Microsoft.EntityFrameworkCore;
 
-namespace MedicalCrmLib.Repositories;
-
-public class CleaningScheduleRepository : IRepository<CleaningSchedule, (int RoomNumber, DateTime CleaningDate)>
+namespace MedicalCrmLib.Repositories
 {
-    private readonly CrmDbContext _context;
-
-    public CleaningScheduleRepository(CrmDbContext context)
+    public class CleaningScheduleRepository(CrmDbContext context)
+        : IRepository<CleaningSchedule, (int RoomNumber, DateTime CleaningDate)>
     {
-        _context = context;
-    }
-
-    public async Task<List<CleaningSchedule>> GetAsList()
-    {
-        return await _context.CleaningSchedules.ToListAsync();
-    }
-
-    public async Task<List<CleaningSchedule>> GetAsList(Func<CleaningSchedule, bool> predicate)
-    {
-        return await Task.FromResult(_context.CleaningSchedules
-            .Where(predicate)
-            .ToList());
-    }
-
-    public async Task Add(CleaningSchedule newRecord)
-    {
-        await _context.CleaningSchedules.AddAsync(newRecord);
-        await _context.SaveChangesAsync();
-    }
-
-    public async Task Delete((int RoomNumber, DateTime CleaningDate) key)
-    {
-        var cleaningSchedule = await _context.CleaningSchedules.FindAsync(key.RoomNumber, key.CleaningDate);
-        if (cleaningSchedule != null)
+        public async Task<List<CleaningSchedule>> GetAsList()
         {
-            _context.CleaningSchedules.Remove(cleaningSchedule);
-            await _context.SaveChangesAsync();
+            return await context.CleaningSchedules.ToListAsync();
         }
-    }
 
-    public async Task Update(CleaningSchedule newValue)
-    {
-        var cleaningSchedule = await _context.CleaningSchedules.FindAsync(newValue.RoomNumber, newValue.CleaningDate);
-        if (cleaningSchedule != null)
+        public async Task<List<CleaningSchedule>> GetAsList(Func<CleaningSchedule, bool> predicate)
         {
-            cleaningSchedule.EmployeeId = newValue.EmployeeId;
+            return await Task.Run(() => context.CleaningSchedules.AsEnumerable().Where(predicate).ToList());
+        }
 
-            _context.CleaningSchedules.Update(cleaningSchedule);
-            await _context.SaveChangesAsync();
+        public async Task Add(CleaningSchedule newRecord)
+        {
+            try
+            {
+                await context.CleaningSchedules.AddAsync(newRecord);
+                await context.SaveChangesAsync();
+            }
+            catch (DbUpdateException ex) 
+            {
+                throw new Exception("Ошибка при добавлении записи: " + ex.InnerException?.Message);
+            }
+        }
+
+        public async Task Delete((int RoomNumber, DateTime CleaningDate) key)
+        {
+            var cleaningSchedule = await context.CleaningSchedules
+                .FindAsync(key.RoomNumber, key.CleaningDate);
+
+            if (cleaningSchedule != null)
+            {
+                try
+                {
+                    context.CleaningSchedules.Remove(cleaningSchedule);
+                    await context.SaveChangesAsync();
+                }
+                catch (DbUpdateException ex)
+                {
+                    throw new Exception("Ошибка при удалении записи: " + ex.InnerException?.Message);
+                }
+            }
+        }
+
+        public async Task Update(CleaningSchedule newValue)
+        {
+            try
+            {
+                context.CleaningSchedules.Update(newValue);
+                await context.SaveChangesAsync();
+            }
+            catch (DbUpdateException ex)
+            {
+                throw new Exception("Ошибка при обновлении записи: " + ex.InnerException?.Message);
+            }
         }
     }
 }

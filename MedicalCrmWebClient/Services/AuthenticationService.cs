@@ -1,7 +1,7 @@
 using MedicalCrmLib.Interfaces;
 using MedicalCrmLib.Model;
 
-namespace MrdicalCrmWebClient.Srvices;
+namespace MedicalCrmWebClient.Srvices;
 
 public class AuthenticationService: IAuthenticationService
 {

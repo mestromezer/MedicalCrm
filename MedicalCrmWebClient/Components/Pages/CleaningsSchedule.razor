@@ -1,0 +1,178 @@
+@page "/cleaning-schedules"
+
+@rendermode InteractiveServer
+
+@inject IRepository<CleaningSchedule, (int RoomNumber, DateTime CleaningDate)> cleaningScheduleRepository;
+
+@using Blazorise.DataGrid
+@using Blazorise
+@using MedicalCrmLib.Interfaces
+
+<Card>
+    <CardHeader>
+        <Row Class="justify-content-between">
+            <Column ColumnSize="ColumnSize.IsAuto">
+                <h4>График уборки</h4>
+            </Column>
+            <Column ColumnSize="ColumnSize.IsAuto">
+                <Button Color="Color.Primary" Clicked="ShowAddCleaningScheduleModal">
+                    Добавить запись
+                </Button>
+                <Button Color="Color.Danger" Disabled="@(_selectedSchedules.Count == 0)"
+                        Clicked="ConfirmDeleteSelectedSchedules">
+                    Удалить выбранное
+                </Button>
+            </Column>
+        </Row>
+    </CardHeader>
+    <CardBody>
+        <DataGrid TItem="CleaningSchedule"
+                  Data="@cleaningSchedules"
+                  SelectionMode="DataGridSelectionMode.Multiple"
+                  @bind-SelectedRows="_selectedSchedules"
+                  ShowPager="true"
+                  PageSize="@GridPageSize"
+                  Responsive Striped>
+            <DataGridColumns>
+                <DataGridMultiSelectColumn TItem="CleaningSchedule" Width="30px" />
+
+                <DataGridColumn TItem="CleaningSchedule"
+                                Field="@nameof(CleaningSchedule.RoomNumber)"
+                                Caption="Номер кабинета" />
+
+                <DataGridColumn TItem="CleaningSchedule"
+                                Field="@nameof(CleaningSchedule.CleaningDate)"
+                                Caption="Дата проведения уборки" />
+
+                <DataGridColumn TItem="CleaningSchedule"
+                                Field="@nameof(CleaningSchedule.EmployeeId)"
+                                Caption="ID сотрудника" />
+
+                <DataGridCommandColumn TItem="CleaningSchedule" Width="150px">
+                    <DisplayTemplate>
+                        <Button Color="Color.Danger" Clicked="@(() => DeleteCleaningSchedule((context.RoomNumber, context.CleaningDate)))">
+                            Удалить
+                        </Button>
+                    </DisplayTemplate>
+                </DataGridCommandColumn>
+            </DataGridColumns>
+
+            <LoadingTemplate>
+                <p>Загрузка...</p>
+            </LoadingTemplate>
+
+            <EmptyTemplate>
+                <p>Нет записей.</p>
+            </EmptyTemplate>
+        </DataGrid>
+
+        <!-- Alert для отображения ошибок -->
+        @if (!string.IsNullOrEmpty(ErrorMessage))
+        {
+            <Alert Color="Color.Danger" IsDismissible="true" OnDismissed="@(() => ErrorMessage = null)">
+                @ErrorMessage
+            </Alert>
+        }
+    </CardBody>
+</Card>
+
+<Modal @ref="addCleaningScheduleModal" Size="ModalSize.Small" ShowCloseIcon="true" Style="background-color: white;">
+    <ModalHeader>
+        <h5>Добавить запись в график уборки</h5>
+    </ModalHeader>
+    <ModalBody>
+        <div class="mb-3">
+            <label for="roomNumber">Номер кабинета:</label>
+            <input type="number" id="roomNumber" @bind="newCleaningSchedule.RoomNumber" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label for="cleaningDate">Дата проведения уборки:</label>
+            <input type="date" id="cleaningDate" @bind="newCleaningSchedule.CleaningDate" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label for="employeeId">ID сотрудника:</label>
+            <input type="number" id="employeeId" @bind="newCleaningSchedule.EmployeeId" class="form-control" />
+        </div>
+    </ModalBody>
+    <ModalFooter>
+        <Button Color="Color.Primary" Clicked="AddNewCleaningSchedule">
+            Добавить
+        </Button>
+        <Button Color="Color.Secondary" Clicked="CancelClicked">
+            Отмена
+        </Button>
+    </ModalFooter>
+</Modal>
+
+@code {
+    private List<CleaningSchedule> cleaningSchedules = new();
+    private CleaningSchedule newCleaningSchedule = new();
+    private List<CleaningSchedule> _selectedSchedules = new();
+    private Modal? addCleaningScheduleModal = null!;
+    private int GridPageSize = 5;
+    private string? ErrorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadCleaningSchedules();
+    }
+
+    private async Task LoadCleaningSchedules()
+    {
+        try
+        {
+            cleaningSchedules = await cleaningScheduleRepository.GetAsList();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = "Ошибка загрузки графика уборки: " + ex.Message;
+        }
+    }
+
+    private async Task ShowAddCleaningScheduleModal()
+    {
+        newCleaningSchedule = new CleaningSchedule();
+        await addCleaningScheduleModal!.Show();
+    }
+
+    private async Task AddNewCleaningSchedule()
+    {
+        try
+        {
+            await cleaningScheduleRepository.Add(newCleaningSchedule);
+            await LoadCleaningSchedules();
+            await addCleaningScheduleModal.Hide();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = "Ошибка при добавлении записи: " + ex.Message;
+        }
+    }
+
+    private async Task DeleteCleaningSchedule((int RoomNumber, DateTime CleaningDate) key)
+    {
+        try
+        {
+            await cleaningScheduleRepository.Delete(key);
+            await LoadCleaningSchedules();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = "Ошибка при удалении записи: " + ex.Message;
+        }
+    }
+
+    private async Task ConfirmDeleteSelectedSchedules()
+    {
+        foreach (var schedule in _selectedSchedules.ToList())
+        {
+            await DeleteCleaningSchedule((schedule.RoomNumber, schedule.CleaningDate));
+        }
+        _selectedSchedules.Clear();
+    }
+
+    private async Task CancelClicked()
+    {
+        await addCleaningScheduleModal.Hide();
+    }
+}
