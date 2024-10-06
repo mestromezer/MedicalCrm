@@ -1,8 +1,9 @@
 @page "/account"
+@using MedicalCrmLib.Dtos
 
-@inject NavigationManager Navigation
-@inject IAuthenticationService authenticationService
-@using MedicalCrmLib.Interfaces
+@inject IRepository<Account, string> AccountRepository
+@inject ISecurityService SecurityService
+@inject IAltairCABlazorCookieUtil cookiesUtil;
 
 <Row>
     <!-- Форма регистрации -->
@@ -22,12 +23,12 @@
                 </div>
                 <div class="mb-3">
                     <label for="userRole">Должность пользователя:</label>
-                        <Select TItem="string" @bind-SelectedValue="newAccount.UserRole" Class="form-control">
-                            <SelectItem Value="@("Заведующий лабораторией")">Заведующий лабораторией</SelectItem>
-                            <SelectItem Value="@("Старший фельдшер-лаборант")">Старший фельдшер-лаборант</SelectItem>
-                            <SelectItem Value="@("Фельдшер-лаборант")">Фельдшер-лаборант</SelectItem>
-                            <SelectItem Value="@("Сотрудник регистратуры")">Сотрудник регистратуры</SelectItem>
-                        </Select>
+                    <Select TItem="string" @bind-SelectedValue="newAccount.UserRole" Class="form-control">
+                        <SelectItem Value="@("Заведующий лабораторией")">Заведующий лабораторией</SelectItem>
+                        <SelectItem Value="@("Старший фельдшер-лаборант")">Старший фельдшер-лаборант</SelectItem>
+                        <SelectItem Value="@("Фельдшер-лаборант")">Фельдшер-лаборант</SelectItem>
+                        <SelectItem Value="@("Сотрудник регистратуры")">Сотрудник регистратуры</SelectItem>
+                    </Select>
                 </div>
                 <Button Color="Color.Primary" Clicked="Register">Создать аккаунт</Button>
             </CardBody>
@@ -55,53 +56,65 @@
     </Column>
 </Row>
 
+<Alert @ref="registrationAlertUserExists" Color="Color.Danger" Visible="false">
+    Пользователь с указанным паролем уже есть в системе.
+</Alert>
+
 <Alert @ref="loginAlert" Color="Color.Danger" Visible="false">
     Неправильное имя пользователя или пароль.
 </Alert>
 
 <Alert @ref="registrationAlert" Color="Color.Danger" Visible="false">
-    Ошибка при создании аккаунта. Попробуйте снова.
+    Ошибка при создании аккаунта. Попробуйте снова. Возможно некоторые поля были пустыми.
 </Alert>
 
 @code {
 
-// Модель для регистрации нового пользователя
     private Account newAccount = new Account();
-
-// Модель для логина
     private Account loginModel = new Account();
 
     private Alert? loginAlert;
     private Alert? registrationAlert;
+    private Alert? registrationAlertUserExists;
 
     private async Task Register()
     {
-        bool isRegistered = await authenticationService.RegisterAsync(newAccount);
-
-        if (isRegistered)
+        if (string.IsNullOrWhiteSpace(newAccount.Login)
+            || string.IsNullOrWhiteSpace(newAccount.Password)
+            || string.IsNullOrWhiteSpace(newAccount.UserRole))
         {
-// Если регистрация успешна, перенаправляем пользователя на страницу входа
-            Navigation.NavigateTo("/profile");
-        }
-        else
-        {
-// Показать сообщение об ошибке регистрации
             await registrationAlert!.Show();
+            return;
         }
+
+        var users = await AccountRepository.GetAsList();
+
+        if (users.FirstOrDefault(u => u.Login == newAccount.Login) != null)
+        {
+            await registrationAlertUserExists!.Show();
+            return;
+        }
+
+        var dto = new RegisterDto(newAccount.Login, newAccount.Password!, newAccount.UserRole!);
+        await SecurityService.RegisterUser(dto);
     }
 
     private async Task Login()
     {
-        bool isLoggedIn = await authenticationService.LoginAsync(loginModel.Login, loginModel.Password);
-
-        if (isLoggedIn)
+        if (string.IsNullOrWhiteSpace(loginModel.Login))
+            await registrationAlert!.Show();
+        
+        if (string.IsNullOrWhiteSpace(newAccount.UserRole))
+            await registrationAlert!.Show();
+        
+        var dto = new LoginDto(newAccount.Login, newAccount.Password!);
+        try
         {
-// Если логин успешен, перенаправляем пользователя на страницу профиля
-            Navigation.NavigateTo("/profile");
+            var token = await SecurityService.GetUserJwt(dto);
+            await cookiesUtil.SetValueAsync("jwt", token);
         }
-        else
+        catch
         {
-// Показать сообщение об ошибке входа
             await loginAlert!.Show();
         }
     }

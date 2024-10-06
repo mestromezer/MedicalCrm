@@ -1,3 +1,4 @@
+using AltairCA.Blazor.WebAssembly.Cookie.Framework;
 using Blazorise;
 using Blazorise.Bootstrap5;
 using Blazorise.Icons.FontAwesome;
@@ -6,6 +7,7 @@ using MedicalCrmLib.Interfaces;
 using MedicalCrmLib.Model;
 using MedicalCrmLib.Repositories;
 using MedicalCrmWebApplication.Components;
+using MedicalCrmWebApplication.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -33,6 +35,13 @@ builder.Services.AddTransient<IRepository<Order, int>, OrderRepository>();
 builder.Services.AddTransient<IRepository<OrderService, int>, OrderServiceRepository>();
 builder.Services.AddTransient<IRepository<ProtectiveEquipmentJournal, (string EquipmentName, int EmployeeId)>, ProtectiveEquipmentJournalRepository>();
 builder.Services.AddTransient<IRepository<ServiceList, int>, ServiceListRepository>();
+builder.Services.AddTransient<IJwtServiceWithRoles, JwtService>();
+builder.Services.AddTransient<ISecurityService, SecurityService>();
+
+builder.Services.AddAltairCACookieService(options =>
+{
+    options.DefaultExpire = TimeSpan.FromMinutes(15);
+});
 
 
 builder.Services
