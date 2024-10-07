@@ -1,0 +1,120 @@
+﻿@page "/registration"
+@using MedicalCrmWebApplication.Model
+
+@rendermode InteractiveServer
+
+@inject IRepository<Employee, int> EmployeeRepository
+@inject NavigationManager NavigationManager
+@inject IRepository<Account, string> AccountRepository
+
+<Column ColumnSize="ColumnSize.Is6">
+    <Card>
+        <CardHeader>
+            <h4>Регистрация</h4>
+        </CardHeader>
+        <CardBody>
+            <EditForm Model="accountModel">
+            <div class="mb-3">
+                <label for="registerUsername">Логин:</label>
+                <input type="text" id="registerUsername" @bind="@accountModel.Login" class="form-control"/>
+            </div>
+            <div class="mb-3">
+                <label for="registerPassword">Пароль:</label>
+                <input type="password" id="registerPassword" @bind="@accountModel.Password" class="form-control"/>
+            </div>
+            <div class="mb-3">
+                <label for="userRole">Должность пользователя:</label>
+                <Select id="userRole" TItem="string" @bind-SelectedValue="@accountModel.Role" Class="form-control">
+                    <SelectItem Value="@("Заведующий лабораторией")">Заведующий лабораторией</SelectItem>
+                    <SelectItem Value="@("Старший фельдшер-лаборант")">Старший фельдшер-лаборант</SelectItem>
+                    <SelectItem Value="@("Фельдшер-лаборант")">Фельдшер-лаборант</SelectItem>
+                    <SelectItem Value="@("Сотрудник регистратуры")">Сотрудник регистратуры</SelectItem>
+                </Select>
+            </div>
+            </EditForm>
+            <EditForm Model="employeeModel" FormName="LoginForm">
+                <div class="mb-3 text-center flex-column">
+                    <h3>Информация о работнике</h3>
+                </div>
+                <div class="mb-3">
+                    <label>ФИО</label>
+                    <InputText @bind-Value="employeeModel.FullName" class="from-control"/>
+                </div>
+                <div class="mb-3">
+                    <DatePicker TValue="DateTime?" Text="Дата рождения" @bind-Value="employeeModel.BirthDate"></DatePicker>
+                </div>
+                <div class="mb-3">
+                    <label>Номер телефона</label>
+                    <InputText @bind-Value="employeeModel.PhoneNumber" class="from-control"/>
+                </div>
+                <div class="mb-3">
+                    <label>Название лаборатории</label>
+                    <InputText @bind-Value="employeeModel.LaboratoryName" class="from-control"/>
+                </div>
+            </EditForm>
+
+            <Button Color="Color.Primary" Clicked="@RegisterAccount">Создать аккаунт</Button>
+            
+            <div class="mb-3 text-center">
+                <span class="text-danger">@errorMessage</span>
+            </div>
+        </CardBody>
+    </Card>
+</Column>
+
+@code{
+    public RegisterDto accountModel { get; set; } = new() {Role = "Заведующий лабораторией"};
+
+    private EmployeeViewModel employeeModel { get; set; } = new();
+
+    string? errorMessage { get; set; }
+    
+    private async Task RegisterAccount()
+    {
+        if (string.IsNullOrWhiteSpace(accountModel.Login)
+            || string.IsNullOrWhiteSpace(accountModel.Password)
+            || string.IsNullOrWhiteSpace(accountModel.Role))
+        {
+            errorMessage = "Не корректные данные, или логин уже занят.";
+            return;
+        }
+
+        var users = await AccountRepository.GetAsList();
+
+        if (users.FirstOrDefault(u => u.Login == accountModel.Login) != null)
+        {
+            errorMessage = "Не корректные данные, или логин уже занят.";
+            return;
+        }
+
+        var account = new Account()
+        {
+            Login = accountModel.Login,
+            Password = accountModel.Password,
+            UserRole = accountModel.Role
+        };
+        
+        
+        if(DateTime.TryParse(employeeModel.BirthDate, out var birthDate))
+        {
+            errorMessage = "Дата рождения указа в неверном формате.";
+            return;
+        }
+        
+        var employee = new Employee()
+        {
+            Position = account.UserRole,
+            AccountLogin = account.Login,
+            Account = account,
+            FullName = employeeModel.FullName,
+            BirthDate = birthDate,
+            PhoneNumber = employeeModel.PhoneNumber,
+            LaboratoryName = employeeModel.LaboratoryName,
+        };
+        
+        await AccountRepository.Add(account);
+        await EmployeeRepository.Add(employee);
+        
+        NavigationManager.NavigateTo("/login");
+    }
+}

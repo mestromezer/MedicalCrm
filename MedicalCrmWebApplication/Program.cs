@@ -1,4 +1,3 @@
-using AltairCA.Blazor.WebAssembly.Cookie.Framework;
 using Blazorise;
 using Blazorise.Bootstrap5;
 using Blazorise.Icons.FontAwesome;
@@ -7,7 +6,7 @@ using MedicalCrmLib.Interfaces;
 using MedicalCrmLib.Model;
 using MedicalCrmLib.Repositories;
 using MedicalCrmWebApplication.Components;
-using MedicalCrmWebApplication.Services;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -35,14 +34,20 @@ builder.Services.AddTransient<IRepository<Order, int>, OrderRepository>();
 builder.Services.AddTransient<IRepository<OrderService, int>, OrderServiceRepository>();
 builder.Services.AddTransient<IRepository<ProtectiveEquipmentJournal, (string EquipmentName, int EmployeeId)>, ProtectiveEquipmentJournalRepository>();
 builder.Services.AddTransient<IRepository<ServiceList, int>, ServiceListRepository>();
-builder.Services.AddTransient<IJwtServiceWithRoles, JwtService>();
-builder.Services.AddTransient<ISecurityService, SecurityService>();
 
-builder.Services.AddAltairCACookieService(options =>
-{
-    options.DefaultExpire = TimeSpan.FromMinutes(15);
-});
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.Cookie.Name = "auth_token";
+        options.LoginPath = "/login";
+        options.Cookie.MaxAge = TimeSpan.FromMinutes(15);
+        options.AccessDeniedPath = "/access-denied";
+    });
 
+builder.Services.AddAuthorization();
+builder.Services.AddCascadingAuthenticationState();
+
+builder.Services.AddHttpContextAccessor();
 
 builder.Services
     .AddBlazorise(options =>
@@ -61,6 +66,9 @@ if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
 }
 
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.UseHttpsRedirection();
 
 app.UseStaticFiles();
@@ -68,5 +76,6 @@ app.UseAntiforgery();
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
+
 
 app.Run();

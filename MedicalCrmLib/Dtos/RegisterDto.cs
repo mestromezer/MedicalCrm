@@ -1,3 +1,8 @@
 namespace MedicalCrmLib.Dtos;
 
-public record RegisterDto(string Login, string Password, string Role);
+public class RegisterDto
+{
+    public string Login { get; set; }
+    public string Password { get; set; }
+    public string Role { get; set; }
+};

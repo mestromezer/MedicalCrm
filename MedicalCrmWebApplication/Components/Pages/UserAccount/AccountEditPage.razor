@@ -1,0 +1,85 @@
+﻿@inject IRepository<Employee, int> EmployeeRepository
+
+@page "/account"
+@using System.Security.Claims
+@using MedicalCrmWebApplication.Model
+
+<EditForm Model="Employee" OnValidSubmit="Update" FormName="LoginForm">
+    <div class="mb-3 text-center flex-column">
+        <h3>Информация о работнике</h3>
+    </div>
+    <div class="mb-3">
+        <label>ФИО</label>
+        <InputText @bind-Value="Employee.FullName" class="from-control" />
+    </div>
+    <div class="mb-3">
+        <DatePicker TValue="DateTime?" Text="Дата рождения" @bind-Value="Employee.BirthDate"></DatePicker>
+    </div>
+    <div class="mb-3">
+        <label>Номер телефона</label>
+        <InputText @bind-Value="Employee.PhoneNumber" class="from-control" />
+    </div>
+    <div class="mb-3">
+        <label>Название лаборатории</label>
+        <InputText @bind-Value="Employee.LaboratoryName" class="from-control" />
+    </div>
+    
+    <div class="mb-3 d-grid gap-2">
+        <button type="submit" class="btn btn-primary">Сохранить</button>
+    </div>
+</EditForm>
+
+
+@code
+{
+    [CascadingParameter] 
+    public HttpContext HttpContext { get; set; }
+
+    private EmployeeViewModel Employee { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        
+        if(HttpContext.User.Identity == null)
+            return;
+        
+        var userLogin = HttpContext.User.FindFirstValue(ClaimTypes.Name);
+        var employeeSrc = (await EmployeeRepository.GetAsList()).First(e => e.AccountLogin == userLogin);
+
+        Employee.FullName = employeeSrc.FullName;
+        Employee.BirthDate = employeeSrc.BirthDate?.ToString() ?? "мм.дд.гггг";
+        Employee.PhoneNumber = employeeSrc.PhoneNumber;
+        Employee.LaboratoryName = employeeSrc.LaboratoryName;
+    }
+
+    private async Task Update()
+    {
+        if(HttpContext.User.Identity == null)
+            return;
+
+        var employeeSrc = new Employee();
+
+        var userLogin = HttpContext.User.FindFirstValue(ClaimTypes.Name);
+
+        if (string.IsNullOrWhiteSpace(userLogin))
+            return;
+        
+        if(DateTime.TryParse(Employee.BirthDate, out var birthDate))
+        {
+            return;
+        }
+        
+        if (string.IsNullOrWhiteSpace(Employee.LaboratoryName))
+            return;
+        
+        employeeSrc.Position = HttpContext.User.Identity.Name;
+        employeeSrc.FullName = Employee.FullName;
+        employeeSrc.BirthDate = birthDate;
+        employeeSrc.PhoneNumber = Employee.PhoneNumber;
+        employeeSrc.LaboratoryName = Employee.LaboratoryName;
+        employeeSrc.AccountLogin = userLogin;
+
+        await EmployeeRepository.Update(employeeSrc);
+    }
+}
